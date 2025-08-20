@@ -1,0 +1,227 @@
+{
+  "parameter_categories": {
+    "spatial": {
+      "name": "空间参数",
+      "priority": 1,
+      "parameters": {
+        "observation_area": {
+          "name": "观测区域",
+          "description": "需要监测的地理区域或地点",
+          "required": true,
+          "examples": ["青海湖", "长江流域", "北京市", "黄河三角洲", "珠江口"],
+          "clarification_prompt": "您需要监测哪个具体的地理区域？例如：某个湖泊、城市、流域或特定经纬度范围",
+          "follow_up": {
+            "area_size": "观测区域的大致面积是多少？（如：1000平方公里）",
+            "specific_points": "是否有特别关注的关键点位？"
+          }
+        },
+        "coverage_type": {
+          "name": "覆盖类型",
+          "description": "全覆盖还是重点区域覆盖",
+          "required": false,
+          "options": ["全区域连续覆盖", "重点区域密集观测", "动态热点跟踪", "固定点位监测"],
+          "default": "重点区域密集观测",
+          "clarification_prompt": "您需要什么样的覆盖方式？全面覆盖还是重点关注某些区域？"
+        },
+        "observation_priority": {
+          "name": "观测优先级",
+          "description": "不同区域或目标的观测优先级",
+          "required": false,
+          "examples": ["核心区域优先", "均匀覆盖", "边缘区域加密"],
+          "clarification_prompt": "是否有需要优先观测的特定区域或目标？"
+        }
+      }
+    },
+    "temporal": {
+      "name": "时间参数",
+      "priority": 2,
+      "parameters": {
+        "observation_frequency": {
+          "name": "观测频率",
+          "description": "多久需要获取一次数据",
+          "required": true,
+          "examples": ["每天1次", "每天2-3次", "每周2次", "每月1次", "每小时1次"],
+          "clarification_prompt": "您需要多长时间获取一次观测数据？例如：每天一次、每周两次",
+          "dynamic_options": {
+            "emergency": "应急监测（每小时）",
+            "daily": "日常监测（每天）",
+            "regular": "定期监测（每周）",
+            "periodic": "周期监测（每月）"
+          }
+        },
+        "monitoring_period": {
+          "name": "监测周期",
+          "description": "总体监测时长",
+          "required": true,
+          "examples": ["1个月", "3个月", "6个月", "1年", "长期监测", "应急期间（1-2周）"],
+          "clarification_prompt": "您计划监测多长时间？是短期项目还是长期监测？"
+        },
+        "time_criticality": {
+          "name": "时效性要求",
+          "description": "数据获取的时效性要求",
+          "required": false,
+          "options": ["准实时（1小时内）", "近实时（6小时内）", "次日", "一周内"],
+          "clarification_prompt": "您对数据时效性有什么要求？需要多快获得观测数据？"
+        },
+        "specific_time_windows": {
+          "name": "特定时间窗口",
+          "description": "是否有特定的观测时间要求",
+          "required": false,
+          "examples": ["仅白天观测", "避开雨季", "生长季（4-10月）", "汛期重点"],
+          "clarification_prompt": "是否有特定的观测时间要求？如季节、时段等"
+        }
+      }
+    },
+    "technical": {
+      "name": "技术参数",
+      "priority": 3,
+      "parameters": {
+        "spatial_resolution": {
+          "name": "空间分辨率",
+          "description": "需要的图像分辨率",
+          "required": true,
+          "options": {
+            "very_high": "超高分辨率(<1米) - 精细目标识别",
+            "high": "高分辨率(1-5米) - 详细地物监测",
+            "medium": "中分辨率(5-30米) - 常规监测",
+            "low": "低分辨率(>30米) - 大范围概览",
+            "mixed": "混合分辨率 - 根据需求调整"
+          },
+          "clarification_prompt": "您需要什么级别的空间分辨率？这决定了能看清多小的目标"
+        },
+        "spectral_bands": {
+          "name": "光谱波段",
+          "description": "需要的光谱类型",
+          "required": true,
+          "options": {
+            "visible": "可见光 - 真彩色影像",
+            "multispectral": "多光谱 - 植被/水体分析",
+            "hyperspectral": "高光谱 - 精细光谱分析",
+            "thermal": "热红外 - 温度监测",
+            "radar": "雷达 - 全天候观测",
+            "combined": "多源组合 - 综合分析"
+          },
+          "clarification_prompt": "您需要哪种类型的遥感数据？不同波段适合不同的应用"
+        },
+        "weather_dependency": {
+          "name": "天气依赖性",
+          "description": "对天气条件的要求",
+          "required": false,
+          "options": ["必须晴天", "允许少量云", "全天候观测", "不限"],
+          "clarification_prompt": "您的观测对天气条件有要求吗？"
+        },
+        "data_processing_level": {
+          "name": "数据处理级别",
+          "description": "需要的数据产品级别",
+          "required": false,
+          "options": ["原始数据", "几何校正", "大气校正", "专题产品", "分析报告"],
+          "clarification_prompt": "您需要什么级别的数据产品？原始影像还是处理后的产品？"
+        }
+      }
+    },
+    "application": {
+      "name": "应用参数",
+      "priority": 1,
+      "parameters": {
+        "monitoring_target": {
+          "name": "监测目标",
+          "description": "具体要监测什么",
+          "required": true,
+          "categories": {
+            "water": ["水质变化", "水位监测", "水体面积", "富营养化", "藻类爆发"],
+            "vegetation": ["植被覆盖", "作物长势", "森林变化", "草地退化", "物候监测"],
+            "urban": ["城市扩张", "建筑变化", "热岛效应", "交通流量", "违建监测"],
+            "disaster": ["洪水淹没", "火灾监测", "滑坡识别", "旱情评估", "地震影响"],
+            "environment": ["污染监测", "生态评估", "土地利用", "海岸变化", "冰川消融"],
+            "agriculture": ["作物分类", "产量估算", "病虫害", "灌溉监测", "精准农业"]
+          },
+          "clarification_prompt": "您的主要监测目标是什么？请尽可能具体描述您想观测的内容"
+        },
+        "analysis_requirements": {
+          "name": "分析需求",
+          "description": "需要进行的分析类型",
+          "required": true,
+          "options": [
+            "变化检测 - 对比不同时期的变化",
+            "分类识别 - 识别不同地物类型",
+            "定量反演 - 获取定量参数",
+            "趋势分析 - 长期变化趋势",
+            "异常检测 - 发现异常情况",
+            "综合评估 - 多指标综合分析"
+          ],
+          "clarification_prompt": "您需要进行什么类型的分析？"
+        },
+        "accuracy_requirements": {
+          "name": "精度要求",
+          "description": "对结果精度的要求",
+          "required": false,
+          "options": ["研究级（>95%）", "专业级（>90%）", "应用级（>85%）", "参考级（>80%）"],
+          "clarification_prompt": "您对监测结果的精度有什么要求？"
+        },
+        "output_format": {
+          "name": "输出格式",
+          "description": "期望的数据产品形式",
+          "required": false,
+          "options": [
+            "遥感影像",
+            "专题地图",
+            "统计报表",
+            "变化检测图",
+            "三维模型",
+            "动态监测报告",
+            "预警信息"
+          ],
+          "clarification_prompt": "您希望获得什么形式的监测成果？"
+        }
+      }
+    },
+    "constraints": {
+      "name": "约束条件",
+      "priority": 4,
+      "parameters": {
+        "budget_constraint": {
+          "name": "预算约束",
+          "description": "项目预算范围",
+          "required": false,
+          "options": ["经济型", "标准型", "专业型", "不限"],
+          "clarification_prompt": "您的项目预算大概在什么范围？这会影响卫星选择"
+        },
+        "data_security": {
+          "name": "数据安全要求",
+          "description": "对数据安全性的要求",
+          "required": false,
+          "options": ["公开数据即可", "需要保密", "内部使用", "可公开发布"],
+          "clarification_prompt": "您对数据的保密性有特殊要求吗？"
+        },
+        "response_time": {
+          "name": "响应时间",
+          "description": "紧急程度",
+          "required": false,
+          "options": ["常规项目", "加急项目", "应急响应", "长期规划"],
+          "clarification_prompt": "这个项目的紧急程度如何？"
+        }
+      }
+    }
+  },
+  "clarification_rules": {
+    "max_questions": 5,
+    "min_questions": 2,
+    "skip_option": true,
+    "priority_threshold": 3,
+    "adaptive_questioning": true,
+    "follow_up_enabled": true,
+    "smart_defaults": true,
+    "question_flow": {
+      "initial": ["monitoring_target", "observation_area"],
+      "technical": ["spatial_resolution", "spectral_bands", "observation_frequency"],
+      "advanced": ["analysis_requirements", "accuracy_requirements", "output_format"],
+      "optional": ["budget_constraint", "weather_dependency", "data_security"]
+    }
+  },
+  "intelligent_features": {
+    "context_awareness": true,
+    "parameter_inference": true,
+    "recommendation_engine": true,
+    "validation_rules": true
+  }
+}

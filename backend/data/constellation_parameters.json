@@ -1,0 +1,152 @@
+{
+  "parameter_categories": {
+    "application": {
+      "name": "应用参数",
+      "priority": 1,
+      "parameters": {
+        "monitoring_target": {
+          "name": "监测目标",
+          "description": "具体要监测什么",
+          "required": true,
+          "examples": ["水质变化", "植被覆盖", "城市扩张", "农业监测", "灾害应急"],
+          "clarification_prompt": "您的主要监测目标是什么？"
+        }
+      }
+    },
+    "spatial": {
+      "name": "空间参数",
+      "priority": 1,
+      "parameters": {
+        "observation_area": {
+          "name": "观测区域",
+          "description": "需要监测的地理区域或地点",
+          "required": true,
+          "examples": ["青海湖", "长江流域", "北京市", "武汉市", "柬埔寨", "越南"],
+          "clarification_prompt": "您需要监测哪个具体的地理区域？"
+        },
+        "coverage_range": {
+          "name": "覆盖范围",
+          "description": "监测区域的空间范围大小",
+          "required": true,
+          "examples": ["10平方公里", "100平方公里", "全市范围", "流域全覆盖", "局部重点区域"],
+          "clarification_prompt": "您需要监测的空间范围有多大？",
+          "options": [
+            {"value": "point", "label": "单点监测（<1平方公里）", "description": "适合特定地点的精细监测"},
+            {"value": "local", "label": "局部区域（1-10平方公里）", "description": "适合小范围重点监测"},
+            {"value": "regional", "label": "区域范围（10-100平方公里）", "description": "适合中等范围监测"},
+            {"value": "city", "label": "城市级别（100-1000平方公里）", "description": "适合城市整体监测"},
+            {"value": "large", "label": "大范围（>1000平方公里）", "description": "适合省级或流域监测"}
+          ]
+        },
+        "coverage_type": {
+          "name": "覆盖类型",
+          "description": "观测覆盖的范围类型",
+          "required": false,
+          "options": ["全覆盖", "重点区域密集观测", "关键点位监测", "梯度覆盖"],
+          "clarification_prompt": "您需要什么类型的区域覆盖？"
+        }
+      }
+    },
+    "temporal": {
+      "name": "时间参数",
+      "priority": 2,
+      "parameters": {
+        "observation_frequency": {
+          "name": "观测频率",
+          "description": "多久获取一次数据",
+          "required": true,
+          "examples": ["每天1次", "每周2次", "每月1次", "实时监测"],
+          "clarification_prompt": "您希望多久获取一次新的卫星影像？",
+          "dynamic_options": true
+        },
+        "monitoring_period": {
+          "name": "监测周期",
+          "description": "总共监测多长时间",
+          "required": true,
+          "examples": ["3个月", "6个月", "1年", "长期监测"],
+          "clarification_prompt": "您的监测项目需要持续多长时间？",
+          "dynamic_options": true
+        }
+      }
+    },
+    "technical": {
+      "name": "技术参数",
+      "priority": 4,
+      "optional_category": true,
+      "parameters": {
+        "spatial_resolution": {
+          "name": "空间分辨率",
+          "description": "需要的图像分辨率",
+          "required": false,
+          "optional": true,
+          "options": ["超高分辨率(<1米)", "高分辨率(1-5米)", "中分辨率(5-30米)", "低分辨率(>30米)"],
+          "clarification_prompt": "您需要什么级别的空间分辨率？（可选）",
+          "dynamic_options": true
+        },
+        "spectral_bands": {
+          "name": "光谱波段",
+          "description": "需要的光谱类型",
+          "required": false,
+          "optional": true,
+          "options": ["可见光", "多光谱", "高光谱", "热红外", "雷达"],
+          "clarification_prompt": "您需要什么类型的光谱数据？（可选）"
+        },
+        "analysis_requirements": {
+          "name": "分析需求",
+          "description": "需要进行的数据分析类型",
+          "required": false,
+          "optional": true,
+          "options": ["变化检测", "分类识别", "定量反演", "趋势分析", "异常检测"],
+          "clarification_prompt": "您需要进行什么类型的数据分析？（可选）",
+          "dynamic_options": true
+        },
+        "output_format": {
+          "name": "输出格式",
+          "description": "期望的数据输出格式",
+          "required": false,
+          "optional": true,
+          "options": ["遥感影像", "专题图", "分析报告", "数据产品"],
+          "clarification_prompt": "您希望以什么格式获得分析结果？（可选）",
+          "dynamic_options": true
+        }
+      }
+    }
+  },
+  "clarification_rules": {
+    "max_questions": 8,
+    "min_questions": 5,
+    "skip_option": true,
+    "always_show_technical": true,
+    "technical_params_optional": true
+  },
+  "smart_defaults": {
+    "default": {
+      "observation_frequency": "每天1次",
+      "monitoring_period": "3个月",
+      "spatial_resolution": "中分辨率(5-30米)",
+      "spectral_bands": "多光谱",
+      "analysis_requirements": "变化检测",
+      "accuracy_requirements": "应用级（70-85%）",
+      "output_format": "遥感影像"
+    },
+    "水质": {
+      "spatial_resolution": "中分辨率(5-30米)",
+      "spectral_bands": "多光谱",
+      "analysis_requirements": "定量反演",
+      "output_format": "专题图"
+    },
+    "农业": {
+      "spatial_resolution": "中分辨率(5-30米)",
+      "spectral_bands": "多光谱",
+      "analysis_requirements": "分类识别",
+      "output_format": "分析报告"
+    },
+    "城市扩张": {
+      "spatial_resolution": "高分辨率(1-5米)",
+      "observation_frequency": "每月1次",
+      "analysis_requirements": "变化检测",
+      "spectral_bands": "多光谱",
+      "output_format": "变化图"
+    }
+  }
+}

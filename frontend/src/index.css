@@ -1,0 +1,197 @@
+/* index.css 修复版 - 移除不匹配的属性值 */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #10a37f; /* ChatGPT绿色，可用于重点强调 */
+  --primary-dark: #0e9070;
+  --secondary-color: #404040;
+  --accent-color: #6e6e80;
+  --bg-gradient: linear-gradient(180deg, #f7f7f8 0%, #ffffff 100%);
+  --card-bg: rgba(255, 255, 255, 0.9);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+  background: var(--bg-gradient);
+  min-height: 100vh;
+  color: #343541; /* DeepSeek主要文字颜色 */
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-gray-700 text-white hover:bg-gray-800;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+
+  .container-chat {
+    @apply max-w-6xl mx-auto p-4;
+  }
+
+  .message {
+    @apply p-4 rounded-lg mb-4 max-w-[85%] border-0 transition-all duration-300;
+    box-shadow: var(--card-shadow);
+  }
+
+  .message-user {
+    @apply bg-gray-100 ml-auto border border-gray-200 text-gray-800;
+  }
+
+  .message-assistant {
+    @apply bg-white border border-gray-200 text-gray-800;
+  }
+
+  .thinking-step {
+    @apply text-sm p-2 border-l-2 border-l-gray-300 my-1;
+  }
+
+  /* 表格样式 */
+  table {
+    @apply w-full border-collapse my-4;
+  }
+
+  thead {
+    @apply bg-gray-100;
+  }
+
+  th {
+    @apply border border-gray-300 px-4 py-2 text-left text-sm font-medium text-gray-700;
+  }
+
+  td {
+    @apply border border-gray-300 px-4 py-2 text-sm text-gray-900;
+  }
+
+  /* 代码块样式 */
+  pre {
+    @apply bg-gray-800 text-gray-100 p-4 rounded-lg overflow-x-auto my-4;
+  }
+
+  code {
+    @apply font-mono text-sm;
+  }
+
+  /* 列表样式 */
+  ul, ol {
+    @apply pl-6 my-3;
+  }
+
+  ul {
+    @apply list-disc;
+  }
+
+  ol {
+    @apply list-decimal;
+  }
+
+  /* 卡片样式 */
+  .card-deepseek {
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm p-4;
+  }
+
+  /* 响应式调整 */
+  @media (max-width: 640px) {
+    .message {
+      @apply max-w-[90%];
+    }
+  }
+
+  /* Cesium相关样式 - 优化后的样式确保地图正常显示 */
+  .cesium-container {
+    position: relative !important;
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    touch-action: none !important;
+  }
+
+  .cesium-widget,
+  .cesium-widget canvas {
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none !important;
+  }
+}
+
+/* 通用过渡效果 */
+.transition-width {
+  transition-property: width;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #d1d1d1;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #a8a8a8;
+}
+
+/* Focus状态 */
+*:focus {
+  outline: 2px solid rgba(66, 66, 77, 0.2);
+  outline-offset: 2px;
+}
+
+/* 修复Prose插件样式冲突 */
+.prose pre {
+  color: #f8f8f2 !important;
+  background-color: #2d3748 !important;
+}
+
+.prose code {
+  color: #dd4a68 !important;
+}
+
+.prose a {
+  color: #10a37f !important;
+}
+
+/* 确保聊天区域占据全高 - 修复不匹配的属性值 */
+.h-screen {
+  height: 100vh;
+  /* 移除有警告的属性: height: -webkit-fill-available; */
+}
+
+/* 添加替代方案 */
+html, body {
+  height: 100%;
+}
+
+/* 确保地图全屏模式正确工作 */
+.cesium-fullscreen {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 999 !important;
+}
+
+/* 确保地图在小分辨率设备上也能正常工作 */
+@media (max-width: 640px) {
+  .cesium-container {
+    min-height: 300px;
+  }
+}

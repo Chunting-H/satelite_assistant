@@ -1,0 +1,34 @@
+{
+  "conversation_id": "conv_1748959340067",
+  "messages": [
+    {
+      "role": "user",
+      "content": "我需要监测青海湖的水质变化，请规划方案",
+      "timestamp": 1748959340.64074
+    },
+    {
+      "role": "assistant",
+      "content": "处理您的请求时出错，请稍后重试。错误: StreamingWorkflowManager.send_status() missing 1 required positional argument: 'data'",
+      "timestamp": 1748959340.794962
+    }
+  ],
+  "thinking_steps": [
+    {
+      "step": "初始化",
+      "details": "开始处理用户输入",
+      "timestamp": 1748959340.640758
+    },
+    {
+      "step": "意图识别",
+      "details": "识别意图: generate_plan",
+      "timestamp": 1748959340.742046
+    }
+  ],
+  "current_stage": "analyze_input",
+  "metadata": {
+    "intent": "generate_plan"
+  },
+  "main_plan": null,
+  "alternative_plans": [],
+  "retrieved_knowledge": []
+}

@@ -1,0 +1,16 @@
+{
+  "conversation_id": "conv_1748363367323",
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "处理您的请求时出错，请稍后重试。错误: 'StreamingWorkflowManager' object has no attribute 'initialize_state_streaming'",
+      "timestamp": 1748363368.000765
+    }
+  ],
+  "thinking_steps": [],
+  "current_stage": "requirement_analysis",
+  "metadata": {},
+  "main_plan": null,
+  "alternative_plans": [],
+  "retrieved_knowledge": []
+}

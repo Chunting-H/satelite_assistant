@@ -1,0 +1,512 @@
+[
+  {
+    "id": "document",
+    "name": "真实卫星轨道数据",
+    "version": "1.0",
+    "description": "包含中国高分系列、欧洲哨兵系列、美国Landsat系列等卫星的真实轨道数据",
+    "clock": {
+      "interval": "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z",
+      "currentTime": "2024-01-01T12:00:00Z",
+      "multiplier": 1000,
+      "range": "LOOP_STOP",
+      "step": "SYSTEM_CLOCK_MULTIPLIER"
+    }
+  },
+  {
+    "id": "GF-1",
+    "name": "高分一号",
+    "description": "<h3>高分一号 (GF-1)</h3><p>中国高分辨率对地观测系统的第一颗卫星</p><ul><li>发射日期: 2013年4月26日</li><li>轨道高度: 645公里</li><li>轨道倾角: 98.05°</li><li>分辨率: 全色2米/多光谱8米</li><li>应用: 国土资源调查、环境监测、农业估产</li></ul>",
+    "availability": "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z",
+    "position": {
+      "epoch": "2024-01-01T12:00:00Z",
+      "referenceFrame": "INERTIAL",
+      "cartesian": [
+        0, 0, 0, 7023137,
+        348.436, 6737000, 0, 1640000,
+        696.873, 6737000, 0, -1640000,
+        1045.309, 0, 0, -7023137,
+        1393.745, -6737000, 0, -1640000,
+        1742.182, -6737000, 0, 1640000,
+        2090.618, 0, 0, 7023137,
+        2439.055, 6737000, 0, 1640000,
+        2787.491, 6737000, 0, -1640000,
+        3135.927, 0, 0, -7023137,
+        3484.364, -6737000, 0, -1640000,
+        3832.800, -6737000, 0, 1640000,
+        4181.236, 0, 0, 7023137,
+        4529.673, 6737000, 0, 1640000,
+        4878.109, 6737000, 0, -1640000,
+        5226.545, 0, 0, -7023137,
+        5574.982, -6737000, 0, -1640000,
+        5923.418, -6737000, 0, 1640000
+      ]
+    },
+    "billboard": {
+      "eyeOffset": {
+        "cartesian": [0.0, 0.0, 0.0]
+      },
+      "horizontalOrigin": "CENTER",
+      "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADJSURBVDhPnZHRDcMgEEMZjVEYpaNklIzSEfLfD4qNnXAJSFWfhO7w2Zc0Tf9QG2rXrEzSUeZLOGm47WoH95x3Hl3jEgilvDgsOQUTqsNl68ezEwn1vae6lceSEEYvvWNT/Rxc4CXQNGadho1NXoJ+9iaqc2xi2xbt23PJCDIB6TQjOC6Bho/sDy3fBQT8PrVhibU7yBFcEPaRxOoeTwbwByCOYf9VGp1BYI1BA+EeHhmfzKbBoJEQwn1yzUZtyspIQUha85MpkNIXB7GizqDEECsAAAAASUVORK5CYII=",
+      "pixelOffset": {
+        "cartesian2": [0.0, 0.0]
+      },
+      "scale": 1.5,
+      "show": true,
+      "verticalOrigin": "CENTER",
+      "color": {
+        "rgba": [255, 65, 54, 255]
+      }
+    },
+    "label": {
+      "fillColor": {
+        "rgba": [255, 65, 54, 255]
+      },
+      "font": "12pt sans-serif",
+      "horizontalOrigin": "LEFT",
+      "outlineColor": {
+        "rgba": [0, 0, 0, 255]
+      },
+      "outlineWidth": 2,
+      "pixelOffset": {
+        "cartesian2": [12.0, 0.0]
+      },
+      "show": true,
+      "style": "FILL_AND_OUTLINE",
+      "text": "高分一号\\n645km | 中国",
+      "verticalOrigin": "CENTER"
+    },
+    "path": {
+      "material": {
+        "polylineGlow": {
+          "color": {
+            "rgba": [255, 65, 54, 255]
+          },
+          "glowPower": 0.1
+        }
+      },
+      "width": 3,
+      "leadTime": 5844,
+      "trailTime": 5844,
+      "resolution": 120
+    }
+  },
+  {
+    "id": "Sentinel-2",
+    "name": "哨兵-2号",
+    "description": "<h3>哨兵-2号 (Sentinel-2)</h3><p>欧洲哥白尼计划的多光谱成像卫星</p><ul><li>发射日期: 2015年6月23日(2A)/2017年3月7日(2B)</li><li>轨道高度: 786公里</li><li>轨道倾角: 98.5°</li><li>分辨率: 10米/20米/60米</li><li>应用: 农业监测、林业监测、土地覆盖变化</li></ul>",
+    "availability": "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z",
+    "position": {
+      "epoch": "2024-01-01T12:00:00Z",
+      "referenceFrame": "INERTIAL",
+      "cartesian": [
+        0, 0, 0, 7164137,
+        362.160, 6900000, 0, 1780000,
+        724.320, 6900000, 0, -1780000,
+        1086.480, 0, 0, -7164137,
+        1448.640, -6900000, 0, -1780000,
+        1810.800, -6900000, 0, 1780000,
+        2172.960, 0, 0, 7164137,
+        2535.120, 6900000, 0, 1780000,
+        2897.280, 6900000, 0, -1780000,
+        3259.440, 0, 0, -7164137,
+        3621.600, -6900000, 0, -1780000,
+        3983.760, -6900000, 0, 1780000,
+        4345.920, 0, 0, 7164137,
+        4708.080, 6900000, 0, 1780000,
+        5070.240, 6900000, 0, -1780000,
+        5432.400, 0, 0, -7164137,
+        5794.560, -6900000, 0, -1780000,
+        6156.720, -6900000, 0, 1780000
+      ]
+    },
+    "billboard": {
+      "eyeOffset": {
+        "cartesian": [0.0, 0.0, 0.0]
+      },
+      "horizontalOrigin": "CENTER",
+      "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADJSURBVDhPnZHRDcMgEEMZjVEYpaNklIzSEfLfD4qNnXAJSFWfhO7w2Zc0Tf9QG2rXrEzSUeZLOGm47WoH95x3Hl3jEgilvDgsOQUTqsNl68ezEwn1vae6lceSEEYvvWNT/Rxc4CXQNGadho1NXoJ+9iaqc2xi2xbt23PJCDIB6TQjOC6Bho/sDy3fBQT8PrVhibU7yBFcEPaRxOoeTwbwByCOYf9VGp1BYI1BA+EeHhmfzKbBoJEQwn1yzUZtyspIQUha85MpkNIXB7GizqDEECsAAAAASUVORK5CYII=",
+      "pixelOffset": {
+        "cartesian2": [0.0, 0.0]
+      },
+      "scale": 1.5,
+      "show": true,
+      "verticalOrigin": "CENTER",
+      "color": {
+        "rgba": [116, 185, 255, 255]
+      }
+    },
+    "label": {
+      "fillColor": {
+        "rgba": [116, 185, 255, 255]
+      },
+      "font": "12pt sans-serif",
+      "horizontalOrigin": "LEFT",
+      "outlineColor": {
+        "rgba": [0, 0, 0, 255]
+      },
+      "outlineWidth": 2,
+      "pixelOffset": {
+        "cartesian2": [12.0, 0.0]
+      },
+      "show": true,
+      "style": "FILL_AND_OUTLINE",
+      "text": "哨兵-2号\\n786km | 欧洲",
+      "verticalOrigin": "CENTER"
+    },
+    "path": {
+      "material": {
+        "polylineGlow": {
+          "color": {
+            "rgba": [116, 185, 255, 255]
+          },
+          "glowPower": 0.1
+        }
+      },
+      "width": 3,
+      "leadTime": 6036,
+      "trailTime": 6036,
+      "resolution": 120
+    }
+  },
+  {
+    "id": "Landsat-8",
+    "name": "Landsat-8",
+    "description": "<h3>Landsat-8</h3><p>美国陆地卫星计划的第8颗卫星</p><ul><li>发射日期: 2013年2月11日</li><li>轨道高度: 705公里</li><li>轨道倾角: 98.2°</li><li>分辨率: 全色15米/多光谱30米</li><li>应用: 土地利用、农业、林业、地质调查</li></ul>",
+    "availability": "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z",
+    "position": {
+      "epoch": "2024-01-01T12:00:00Z",
+      "referenceFrame": "INERTIAL",
+      "cartesian": [
+        0, 0, 0, 7083137,
+        356.400, 6820000, 0, 1750000,
+        712.800, 6820000, 0, -1750000,
+        1069.200, 0, 0, -7083137,
+        1425.600, -6820000, 0, -1750000,
+        1782.000, -6820000, 0, 1750000,
+        2138.400, 0, 0, 7083137,
+        2494.800, 6820000, 0, 1750000,
+        2851.200, 6820000, 0, -1750000,
+        3207.600, 0, 0, -7083137,
+        3564.000, -6820000, 0, -1750000,
+        3920.400, -6820000, 0, 1750000,
+        4276.800, 0, 0, 7083137,
+        4633.200, 6820000, 0, 1750000,
+        4989.600, 6820000, 0, -1750000,
+        5346.000, 0, 0, -7083137,
+        5702.400, -6820000, 0, -1750000,
+        6058.800, -6820000, 0, 1750000
+      ]
+    },
+    "billboard": {
+      "eyeOffset": {
+        "cartesian": [0.0, 0.0, 0.0]
+      },
+      "horizontalOrigin": "CENTER",
+      "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADJSURBVDhPnZHRDcMgEEMZjVEYpaNklIzSEfLfD4qNnXAJSFWfhO7w2Zc0Tf9QG2rXrEzSUeZLOGm47WoH95x3Hl3jEgilvDgsOQUTqsNl68ezEwn1vae6lceSEEYvvWNT/Rxc4CXQNGadho1NXoJ+9iaqc2xi2xbt23PJCDIB6TQjOC6Bho/sDy3fBQT8PrVhibU7yBFcEPaRxOoeTwbwByCOYf9VGp1BYI1BA+EeHhmfzKbBoJEQwn1yzUZtyspIQUha85MpkNIXB7GizqDEECsAAAAASUVORK5CYII=",
+      "pixelOffset": {
+        "cartesian2": [0.0, 0.0]
+      },
+      "scale": 1.5,
+      "show": true,
+      "verticalOrigin": "CENTER",
+      "color": {
+        "rgba": [85, 239, 196, 255]
+      }
+    },
+    "label": {
+      "fillColor": {
+        "rgba": [85, 239, 196, 255]
+      },
+      "font": "12pt sans-serif",
+      "horizontalOrigin": "LEFT",
+      "outlineColor": {
+        "rgba": [0, 0, 0, 255]
+      },
+      "outlineWidth": 2,
+      "pixelOffset": {
+        "cartesian2": [12.0, 0.0]
+      },
+      "show": true,
+      "style": "FILL_AND_OUTLINE",
+      "text": "Landsat-8\\n705km | 美国",
+      "verticalOrigin": "CENTER"
+    },
+    "path": {
+      "material": {
+        "polylineGlow": {
+          "color": {
+            "rgba": [85, 239, 196, 255]
+          },
+          "glowPower": 0.1
+        }
+      },
+      "width": 3,
+      "leadTime": 5940,
+      "trailTime": 5940,
+      "resolution": 120
+    }
+  },
+  {
+    "id": "GF-2",
+    "name": "高分二号",
+    "description": "<h3>高分二号 (GF-2)</h3><p>中国自主研制的首颗空间分辨率优于1米的民用光学遥感卫星</p><ul><li>发射日期: 2014年8月19日</li><li>轨道高度: 631公里</li><li>轨道倾角: 97.9°</li><li>分辨率: 全色0.8米/多光谱3.2米</li><li>应用: 城市规划、土地确权、路网设计</li></ul>",
+    "availability": "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z",
+    "position": {
+      "epoch": "2024-01-01T12:00:00Z",
+      "referenceFrame": "INERTIAL",
+      "cartesian": [
+        900, 0, 0, 7009137,
+        1248.000, 6750000, 0, 1600000,
+        1596.000, 6750000, 0, -1600000,
+        1944.000, 0, 0, -7009137,
+        2292.000, -6750000, 0, -1600000,
+        2640.000, -6750000, 0, 1600000,
+        2988.000, 0, 0, 7009137,
+        3336.000, 6750000, 0, 1600000,
+        3684.000, 6750000, 0, -1600000,
+        4032.000, 0, 0, -7009137,
+        4380.000, -6750000, 0, -1600000,
+        4728.000, -6750000, 0, 1600000,
+        5076.000, 0, 0, 7009137,
+        5424.000, 6750000, 0, 1600000,
+        5772.000, 6750000, 0, -1600000,
+        6120.000, 0, 0, -7009137
+      ]
+    },
+    "billboard": {
+      "eyeOffset": {
+        "cartesian": [0.0, 0.0, 0.0]
+      },
+      "horizontalOrigin": "CENTER",
+      "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADJSURBVDhPnZHRDcMgEEMZjVEYpaNklIzSEfLfD4qNnXAJSFWfhO7w2Zc0Tf9QG2rXrEzSUeZLOGm47WoH95x3Hl3jEgilvDgsOQUTqsNl68ezEwn1vae6lceSEEYvvWNT/Rxc4CXQNGadho1NXoJ+9iaqc2xi2xbt23PJCDIB6TQjOC6Bho/sDy3fBQT8PrVhibU7yBFcEPaRxOoeTwbwByCOYf9VGp1BYI1BA+EeHhmfzKbBoJEQwn1yzUZtyspIQUha85MpkNIXB7GizqDEECsAAAAASUVORK5CYII=",
+      "pixelOffset": {
+        "cartesian2": [0.0, 0.0]
+      },
+      "scale": 1.5,
+      "show": true,
+      "verticalOrigin": "CENTER",
+      "color": {
+        "rgba": [255, 120, 120, 255]
+      }
+    },
+    "label": {
+      "fillColor": {
+        "rgba": [255, 120, 120, 255]
+      },
+      "font": "12pt sans-serif",
+      "horizontalOrigin": "LEFT",
+      "outlineColor": {
+        "rgba": [0, 0, 0, 255]
+      },
+      "outlineWidth": 2,
+      "pixelOffset": {
+        "cartesian2": [12.0, 0.0]
+      },
+      "show": true,
+      "style": "FILL_AND_OUTLINE",
+      "text": "高分二号\\n631km | 中国",
+      "verticalOrigin": "CENTER"
+    },
+    "path": {
+      "material": {
+        "polylineGlow": {
+          "color": {
+            "rgba": [255, 120, 120, 255]
+          },
+          "glowPower": 0.1
+        }
+      },
+      "width": 3,
+      "leadTime": 5820,
+      "trailTime": 5820,
+      "resolution": 120
+    }
+  },
+  {
+    "id": "Sentinel-1",
+    "name": "哨兵-1号",
+    "description": "<h3>哨兵-1号 (Sentinel-1)</h3><p>欧洲哥白尼计划的雷达成像卫星</p><ul><li>发射日期: 2014年4月3日(1A)/2016年4月25日(1B)</li><li>轨道高度: 693公里</li><li>轨道倾角: 98.18°</li><li>分辨率: 5×5米至40×40米</li><li>应用: 海洋监测、陆地监测、应急响应</li></ul>",
+    "availability": "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z",
+    "position": {
+      "epoch": "2024-01-01T12:00:00Z",
+      "referenceFrame": "INERTIAL",
+      "cartesian": [
+        1800, 0, 0, 7071137,
+        2151.600, 6800000, 0, 1720000,
+        2503.200, 6800000, 0, -1720000,
+        2854.800, 0, 0, -7071137,
+        3206.400, -6800000, 0, -1720000,
+        3558.000, -6800000, 0, 1720000,
+        3909.600, 0, 0, 7071137,
+        4261.200, 6800000, 0, 1720000,
+        4612.800, 6800000, 0, -1720000,
+        4964.400, 0, 0, -7071137,
+        5316.000, -6800000, 0, -1720000,
+        5667.600, -6800000, 0, 1720000,
+        6019.200, 0, 0, 7071137
+      ]
+    },
+    "billboard": {
+      "eyeOffset": {
+        "cartesian": [0.0, 0.0, 0.0]
+      },
+      "horizontalOrigin": "CENTER",
+      "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADJSURBVDhPnZHRDcMgEEMZjVEYpaNklIzSEfLfD4qNnXAJSFWfhO7w2Zc0Tf9QG2rXrEzSUeZLOGm47WoH95x3Hl3jEgilvDgsOQUTqsNl68ezEwn1vae6lceSEEYvvWNT/Rxc4CXQNGadho1NXoJ+9iaqc2xi2xbt23PJCDIB6TQjOC6Bho/sDy3fBQT8PrVhibU7yBFcEPaRxOoeTwbwByCOYf9VGp1BYI1BA+EeHhmfzKbBoJEQwn1yzUZtyspIQUha85MpkNIXB7GizqDEECsAAAAASUVORK5CYII=",
+      "pixelOffset": {
+        "cartesian2": [0.0, 0.0]
+      },
+      "scale": 1.5,
+      "show": true,
+      "verticalOrigin": "CENTER",
+      "color": {
+        "rgba": [162, 155, 254, 255]
+      }
+    },
+    "label": {
+      "fillColor": {
+        "rgba": [162, 155, 254, 255]
+      },
+      "font": "12pt sans-serif",
+      "horizontalOrigin": "LEFT",
+      "outlineColor": {
+        "rgba": [0, 0, 0, 255]
+      },
+      "outlineWidth": 2,
+      "pixelOffset": {
+        "cartesian2": [12.0, 0.0]
+      },
+      "show": true,
+      "style": "FILL_AND_OUTLINE",
+      "text": "哨兵-1号\\n693km | 欧洲",
+      "verticalOrigin": "CENTER"
+    },
+    "path": {
+      "material": {
+        "polylineGlow": {
+          "color": {
+            "rgba": [162, 155, 254, 255]
+          },
+          "glowPower": 0.1
+        }
+      },
+      "width": 3,
+      "leadTime": 5916,
+      "trailTime": 5916,
+      "resolution": 120
+    }
+  },
+  {
+    "id": "GF-4",
+    "name": "高分四号",
+    "description": "<h3>高分四号 (GF-4)</h3><p>中国首颗地球静止轨道高分辨率光学成像卫星</p><ul><li>发射日期: 2015年12月29日</li><li>轨道高度: 36000公里</li><li>轨道倾角: 0°</li><li>分辨率: 可见光50米/中波红外400米</li><li>应用: 灾害预警、环境监测、林火监测</li></ul>",
+    "availability": "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z",
+    "position": {
+      "epoch": "2024-01-01T12:00:00Z",
+      "referenceFrame": "FIXED",
+      "cartesian": [
+        0, 42164137, 0, 0
+      ]
+    },
+    "billboard": {
+      "eyeOffset": {
+        "cartesian": [0.0, 0.0, 0.0]
+      },
+      "horizontalOrigin": "CENTER",
+      "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADJSURBVDhPnZHRDcMgEEMZjVEYpaNklIzSEfLfD4qNnXAJSFWfhO7w2Zc0Tf9QG2rXrEzSUeZLOGm47WoH95x3Hl3jEgilvDgsOQUTqsNl68ezEwn1vae6lceSEEYvvWNT/Rxc4CXQNGadho1NXoJ+9iaqc2xi2xbt23PJCDIB6TQjOC6Bho/sDy3fBQT8PrVhibU7yBFcEPaRxOoeTwbwByCOYf9VGp1BYI1BA+EeHhmfzKbBoJEQwn1yzUZtyspIQUha85MpkNIXB7GizqDEECsAAAAASUVORK5CYII=",
+      "pixelOffset": {
+        "cartesian2": [0.0, 0.0]
+      },
+      "scale": 2.0,
+      "show": true,
+      "verticalOrigin": "CENTER",
+      "color": {
+        "rgba": [255, 193, 7, 255]
+      }
+    },
+    "label": {
+      "fillColor": {
+        "rgba": [255, 193, 7, 255]
+      },
+      "font": "12pt sans-serif",
+      "horizontalOrigin": "LEFT",
+      "outlineColor": {
+        "rgba": [0, 0, 0, 255]
+      },
+      "outlineWidth": 2,
+      "pixelOffset": {
+        "cartesian2": [12.0, 0.0]
+      },
+      "show": true,
+      "style": "FILL_AND_OUTLINE",
+      "text": "高分四号\\n36000km | 中国 | 静止轨道",
+      "verticalOrigin": "CENTER"
+    }
+  },
+  {
+    "id": "HY-1",
+    "name": "海洋一号",
+    "description": "<h3>海洋一号 (HY-1)</h3><p>中国海洋水色遥感卫星系列</p><ul><li>发射日期: 2002年5月15日(首颗)</li><li>轨道高度: 798公里</li><li>轨道倾角: 98.6°</li><li>分辨率: 250-1100米</li><li>应用: 海洋水色、海温、海冰监测</li></ul>",
+    "availability": "2024-01-01T00:00:00Z/2024-01-02T00:00:00Z",
+    "position": {
+      "epoch": "2024-01-01T12:00:00Z",
+      "referenceFrame": "INERTIAL",
+      "cartesian": [
+        2700, 0, 0, 7176137,
+        2700, 6920000, 0, 1800000,
+        2700, 6920000, 0, -1800000,
+        2700, 0, 0, -7176137,
+        2700, -6920000, 0, -1800000,
+        2700, -6920000, 0, 1800000,
+        2700, 0, 0, 7176137
+      ]
+    },
+    "billboard": {
+      "eyeOffset": {
+        "cartesian": [0.0, 0.0, 0.0]
+      },
+      "horizontalOrigin": "CENTER",
+      "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAADJSURBVDhPnZHRDcMgEEMZjVEYpaNklIzSEfLfD4qNnXAJSFWfhO7w2Zc0Tf9QG2rXrEzSUeZLOGm47WoH95x3Hl3jEgilvDgsOQUTqsNl68ezEwn1vae6lceSEEYvvWNT/Rxc4CXQNGadho1NXoJ+9iaqc2xi2xbt23PJCDIB6TQjOC6Bho/sDy3fBQT8PrVhibU7yBFcEPaRxOoeTwbwByCOYf9VGp1BYI1BA+EeHhmfzKbBoJEQwn1yzUZtyspIQUha85MpkNIXB7GizqDEECsAAAAASUVORK5CYII=",
+      "pixelOffset": {
+        "cartesian2": [0.0, 0.0]
+      },
+      "scale": 1.5,
+      "show": true,
+      "verticalOrigin": "CENTER",
+      "color": {
+        "rgba": [52, 152, 219, 255]
+      }
+    },
+    "label": {
+      "fillColor": {
+        "rgba": [52, 152, 219, 255]
+      },
+      "font": "12pt sans-serif",
+      "horizontalOrigin": "LEFT",
+      "outlineColor": {
+        "rgba": [0, 0, 0, 255]
+      },
+      "outlineWidth": 2,
+      "pixelOffset": {
+        "cartesian2": [12.0, 0.0]
+      },
+      "show": true,
+      "style": "FILL_AND_OUTLINE",
+      "text": "海洋一号\\n798km | 中国",
+      "verticalOrigin": "CENTER"
+    },
+    "path": {
+      "material": {
+        "polylineGlow": {
+          "color": {
+            "rgba": [52, 152, 219, 255]
+          },
+          "glowPower": 0.1
+        }
+      },
+      "width": 3,
+      "leadTime": 6048,
+      "trailTime": 6048,
+      "resolution": 120
+    }
+  }
+]

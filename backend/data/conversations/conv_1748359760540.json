@@ -1,0 +1,16 @@
+{
+  "conversation_id": "conv_1748359760540",
+  "messages": [
+    {
+      "role": "user",
+      "content": "什么是虚拟星座？",
+      "timestamp": 1748359761.0897
+    }
+  ],
+  "thinking_steps": [],
+  "current_stage": "requirement_analysis",
+  "metadata": {},
+  "main_plan": null,
+  "alternative_plans": [],
+  "retrieved_knowledge": []
+}

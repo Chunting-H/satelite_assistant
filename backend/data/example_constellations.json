@@ -1,0 +1,162 @@
+{
+  "example_plans": [
+    {
+      "id": "water_quality_monitoring_advanced",
+      "name": "湖泊水质综合监测方案",
+      "description": "用于全面监测湖泊水质变化的高级虚拟星座方案",
+      "parameters": {
+        "observation_area": "青海湖",
+        "observation_frequency": "每周2次",
+        "monitoring_period": "1年",
+        "spatial_resolution": "medium",
+        "spectral_bands": "multispectral",
+        "monitoring_target": "水质变化",
+        "analysis_requirements": "定量反演",
+        "time_criticality": "次日",
+        "weather_dependency": "允许少量云",
+        "accuracy_requirements": "专业级（>90%）",
+        "output_format": ["水质参数反演图", "时序变化分析报告", "预警信息"],
+        "coverage_type": "全区域连续覆盖",
+        "specific_time_windows": "避开冰冻期"
+      },
+      "satellites": ["高分一号", "Sentinel-2", "Landsat-8", "环境一号"],
+      "keywords": ["水质", "湖泊", "环境监测", "定量反演", "时序分析"],
+      "advantages": [
+        "多源数据互补，提高监测频率",
+        "结合高空间分辨率和高光谱数据",
+        "支持多种水质参数反演",
+        "可实现准实时预警"
+      ]
+    },
+    {
+      "id": "urban_expansion_detailed",
+      "name": "城市精细化扩张监测方案",
+      "description": "用于精确监测城市发展和土地利用变化的综合方案",
+      "parameters": {
+        "observation_area": "北京市五环内",
+        "observation_frequency": "每月2次",
+        "monitoring_period": "长期监测",
+        "spatial_resolution": "high",
+        "spectral_bands": "combined",
+        "monitoring_target": "城市扩张",
+        "analysis_requirements": "变化检测",
+        "time_criticality": "一周内",
+        "weather_dependency": "必须晴天",
+        "accuracy_requirements": "研究级（>95%）",
+        "output_format": ["土地利用分类图", "建筑物变化检测", "三维模型", "统计报表"],
+        "coverage_type": "重点区域密集观测",
+        "observation_priority": "新开发区优先",
+        "data_processing_level": "专题产品",
+        "budget_constraint": "专业型"
+      },
+      "satellites": ["高分二号", "WorldView-3", "Pleiades", "TerraSAR-X"],
+      "keywords": ["城市", "扩张", "土地利用", "高分辨率", "变化检测"]
+    },
+    {
+      "id": "agriculture_precision",
+      "name": "精准农业监测方案",
+      "description": "支持精准农业管理的作物生长全周期监测",
+      "parameters": {
+        "observation_area": "华北平原农业区",
+        "observation_frequency": "每5天1次",
+        "monitoring_period": "生长季（4-10月）",
+        "spatial_resolution": "mixed",
+        "spectral_bands": "hyperspectral",
+        "monitoring_target": "作物长势",
+        "analysis_requirements": "综合评估",
+        "time_criticality": "近实时（6小时内）",
+        "weather_dependency": "全天候观测",
+        "accuracy_requirements": "应用级（>85%）",
+        "output_format": ["作物分类图", "长势评估报告", "产量预测", "病虫害预警"],
+        "coverage_type": "动态热点跟踪",
+        "specific_time_windows": "关键生育期加密",
+        "data_security": "内部使用"
+      },
+      "satellites": ["高分六号", "Sentinel-2", "MODIS", "高分三号"],
+      "keywords": ["农业", "作物", "精准", "产量", "病虫害"]
+    },
+    {
+      "id": "disaster_emergency",
+      "name": "灾害应急响应方案",
+      "description": "用于自然灾害快速响应和评估的应急监测方案",
+      "parameters": {
+        "observation_area": "灾害发生区域",
+        "observation_frequency": "每小时1次",
+        "monitoring_period": "应急期间（1-2周）",
+        "spatial_resolution": "very_high",
+        "spectral_bands": "radar",
+        "monitoring_target": "灾害监测",
+        "analysis_requirements": "异常检测",
+        "time_criticality": "准实时（1小时内）",
+        "weather_dependency": "全天候观测",
+        "accuracy_requirements": "应用级（>85%）",
+        "output_format": ["灾害范围图", "损失评估报告", "救援路径规划", "动态监测报告"],
+        "coverage_type": "动态热点跟踪",
+        "response_time": "应急响应",
+        "data_processing_level": "分析报告"
+      },
+      "satellites": ["高分三号", "Sentinel-1", "高分四号", "RADARSAT-2"],
+      "keywords": ["灾害", "应急", "洪水", "地震", "实时", "雷达"]
+    },
+    {
+      "id": "ecological_monitoring",
+      "name": "生态环境综合监测方案",
+      "description": "面向生态保护区的长期综合监测方案",
+      "parameters": {
+        "observation_area": "三江源自然保护区",
+        "observation_frequency": "每周1次",
+        "monitoring_period": "长期监测",
+        "spatial_resolution": "medium",
+        "spectral_bands": "multispectral",
+        "monitoring_target": "生态评估",
+        "analysis_requirements": "趋势分析",
+        "time_criticality": "一周内",
+        "weather_dependency": "允许少量云",
+        "accuracy_requirements": "专业级（>90%）",
+        "output_format": ["植被覆盖图", "生态质量评估", "变化趋势分析", "年度报告"],
+        "coverage_type": "全区域连续覆盖",
+        "specific_time_windows": "生长季重点",
+        "budget_constraint": "标准型"
+      },
+      "satellites": ["Landsat-8", "Sentinel-2", "高分一号", "MODIS"],
+      "keywords": ["生态", "环境", "保护区", "植被", "长期监测"]
+    }
+  ],
+  "parameter_templates": {
+    "quick_start": {
+      "description": "快速开始模板 - 适合初次使用",
+      "defaults": {
+        "observation_frequency": "每周2次",
+        "monitoring_period": "3个月",
+        "spatial_resolution": "medium",
+        "spectral_bands": "multispectral",
+        "analysis_requirements": "变化检测",
+        "accuracy_requirements": "应用级（>85%）"
+      }
+    },
+    "professional": {
+      "description": "专业模板 - 适合科研项目",
+      "defaults": {
+        "observation_frequency": "每天1次",
+        "monitoring_period": "1年",
+        "spatial_resolution": "high",
+        "spectral_bands": "hyperspectral",
+        "analysis_requirements": "定量反演",
+        "accuracy_requirements": "研究级（>95%）",
+        "data_processing_level": "大气校正"
+      }
+    },
+    "emergency": {
+      "description": "应急模板 - 适合灾害响应",
+      "defaults": {
+        "observation_frequency": "每小时1次",
+        "monitoring_period": "应急期间（1-2周）",
+        "spatial_resolution": "very_high",
+        "spectral_bands": "radar",
+        "analysis_requirements": "异常检测",
+        "time_criticality": "准实时（1小时内）",
+        "weather_dependency": "全天候观测"
+      }
+    }
+  }
+}

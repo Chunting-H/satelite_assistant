@@ -1,0 +1,27 @@
+{
+  "conversation_id": "conv_1748363902685",
+  "messages": [
+    {
+      "role": "user",
+      "content": "我需要监测青海湖的水质变化，请规划方案",
+      "timestamp": 1748363903.367773
+    },
+    {
+      "role": "assistant",
+      "content": "处理您的请求时出错，请稍后重试。错误: 'StreamingWorkflowManager' object has no attribute 'quick_intent_analysis'",
+      "timestamp": 1748363903.672578
+    }
+  ],
+  "thinking_steps": [
+    {
+      "step": "初始化",
+      "details": "开始处理用户输入",
+      "timestamp": 1748363903.367805
+    }
+  ],
+  "current_stage": "analyze_input",
+  "metadata": {},
+  "main_plan": null,
+  "alternative_plans": [],
+  "retrieved_knowledge": []
+}

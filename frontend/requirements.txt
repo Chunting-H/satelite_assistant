@@ -1,0 +1,8 @@
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+nvm -v
+nvm install 22.15.0
+rm -rf node_modules package-lock.json
+npm install
+
+npm run dev -- --host 0.0.0.0 --port 5173

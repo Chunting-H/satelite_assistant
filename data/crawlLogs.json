@@ -1,0 +1,59 @@
+[
+  {
+    "crawlTime": "2025-08-12T12:20:16.874049",
+    "targetSites": [
+      "Gunter's Space Page"
+    ],
+    "newDataCount": 5,
+    "updatedDataCount": 0,
+    "failedCount": 0,
+    "failReasons": [],
+    "dataList": [
+      "GeeSAT 4-01, ..., GeeSAT 4-11",
+      "QPS-SAR 12 (Kushinada 1)",
+      "HWD L7-01, ..., L07-09 (Hulianwang 49, ..., 57)",
+      "Starlink v2-Mini G10-23-1, ..., G10-23-28",
+      "Dragon Crew 11 (Endeavour F6)"
+    ],
+    "executionTime": 97.02516794204712,
+    "totalProcessed": 5
+  },
+  {
+    "crawlTime": "2025-08-12T13:32:42.116559",
+    "targetSites": [
+      "Gunter's Space Page"
+    ],
+    "newDataCount": 5,
+    "updatedDataCount": 0,
+    "failedCount": 0,
+    "failReasons": [],
+    "dataList": [
+      "GeeSAT 4-01, ..., GeeSAT 4-11",
+      "QPS-SAR 12 (Kushinada 1)",
+      "HWD L7-01, ..., L07-09 (Hulianwang 49, ..., 57)",
+      "Starlink v2-Mini G10-23-1, ..., G10-23-28",
+      "Dragon Crew 11 (Endeavour F6)"
+    ],
+    "executionTime": 77.86346793174744,
+    "totalProcessed": 5
+  },
+  {
+    "crawlTime": "2025-08-20T21:04:20.826667",
+    "targetSites": [
+      "Gunter's Space Page"
+    ],
+    "newDataCount": 5,
+    "updatedDataCount": 0,
+    "failedCount": 0,
+    "failReasons": [],
+    "dataList": [
+      "HWD L09-01, ..., L09-05",
+      "Shiyan 28B-02",
+      "Hulianwang Jishu Shiyan 7A, ..., 7D",
+      "Starlink v2-Mini G10-20-1, ..., G10-20-28",
+      "Starlink v2-Mini G17-4-1, ..., G17-4-24"
+    ],
+    "executionTime": 75.99480700492859,
+    "totalProcessed": 5
+  }
+]
