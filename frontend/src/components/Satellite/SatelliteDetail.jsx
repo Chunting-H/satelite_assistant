@@ -1,46 +1,67 @@
-// components/Satellite/SatelliteDetail.jsx - 修复版本：解决3D地球底部控制组件显示问题
+// components/Satellite/SatelliteDetail.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import EnhancedCesiumMap from '../Map/EnhancedCesiumMap';
+
+// 统一的未知值显示
+const UNKNOWN_VALUE = '未知';
+
+// 格式化辅助函数
+const formatValue = (value, suffix = '') => {
+  if (
+    value === null ||
+    value === undefined ||
+    value === '' ||
+    value === 'Unknown' ||
+    value === 'unknown'
+  ) {
+    return UNKNOWN_VALUE;
+  }
+  return suffix ? `${value}${suffix}` : value;
+};
+
+// 格式化数组值
+const formatArrayValue = (arr, separator = '、') => {
+  if (!arr || !Array.isArray(arr) || arr.length === 0) {
+    return UNKNOWN_VALUE;
+  }
+  return arr.filter(item => item && item !== '').join(separator);
+};
+
+// 格式化日期
+const formatDate = (dateStr) => {
+  if (!dateStr || dateStr === 'Unknown') return UNKNOWN_VALUE;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toISOString().split('T')[0];
+  } catch {
+    return dateStr;
+  }
+};
+
+// 轨道周期（分钟→易读）
+const formatOrbitPeriod = (periodMinutes) => {
+  if (!periodMinutes || periodMinutes === 'Unknown') return UNKNOWN_VALUE;
+  const minutes = Number(periodMinutes);
+  if (isNaN(minutes)) return periodMinutes;
+
+  if (minutes < 60) return `${minutes.toFixed(2)} 分钟`;
+  if (minutes < 1440) {
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    return mins > 0 ? `${hours} 小时 ${mins} 分钟` : `${hours} 小时`;
+  }
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.round((minutes % 1440) / 60);
+  return hours > 0 ? `${days} 天 ${hours} 小时` : `${days} 天`;
+};
 
 const SatelliteDetail = ({ satellite, onBack }) => {
   const [activeTab, setActiveTab] = useState('basic');
   const [showOrbitMap, setShowOrbitMap] = useState(true);
   const [mapKey, setMapKey] = useState(0);
   const mapContainerRef = useRef(null);
-  const [containerHeight, setContainerHeight] = useState('100vh');
-
-  // 🔧 新增：动态计算容器高度
-  useEffect(() => {
-    const calculateHeight = () => {
-      // 获取顶部信息面板的高度
-      const infoPanel = document.querySelector('[data-info-panel]');
-      if (infoPanel) {
-        const infoPanelHeight = infoPanel.offsetHeight;
-        const newHeight = `calc(100vh - ${infoPanelHeight}px)`;
-        setContainerHeight(newHeight);
-      }
-    };
-
-    // 初始计算
-    calculateHeight();
-
-    // 监听窗口大小变化
-    const handleResize = () => {
-      calculateHeight();
-      // 同时触发地图重新渲染
-      setMapKey(prev => prev + 1);
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    // 延迟计算，确保DOM已完全渲染
-    const timer = setTimeout(calculateHeight, 100);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
-    };
-  }, [showOrbitMap]);
 
   if (!satellite) {
     return (
@@ -59,41 +80,32 @@ const SatelliteDetail = ({ satellite, onBack }) => {
     setMapKey(prev => prev + 1);
   };
 
-  // 监听容器大小变化，确保地图正确渲染
+  // 窗口尺寸变化时，强制刷新 Cesium（不手算高度）
+  useEffect(() => {
+    const handleResize = () => setMapKey(prev => prev + 1);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 监听右侧容器大小变化，兼容父级布局调整
   useEffect(() => {
     if (!mapContainerRef.current || !showOrbitMap) return;
-
     const resizeObserver = new ResizeObserver(() => {
-      // 触发地图重新渲染
-      setTimeout(() => {
-        setMapKey(prev => prev + 1);
-      }, 100);
+      setTimeout(() => setMapKey(prev => prev + 1), 80);
     });
-
     resizeObserver.observe(mapContainerRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
+    return () => resizeObserver.disconnect();
   }, [showOrbitMap]);
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Operational':
-        return 'bg-green-100 text-green-800';
-      case 'Nonoperational':
-        return 'bg-red-100 text-red-800';
-      case 'Decayed':
-        return 'bg-gray-100 text-gray-800';
-      case 'Unknown':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Partially Operational':
-        return 'bg-orange-100 text-orange-800';
-      case 'Extended Mission':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+    const statusLower = (status || '').toLowerCase();
+    if (status === '运行中' || statusLower === 'operational') return 'bg-green-100 text-green-800';
+    if (status === '停用/退役' || statusLower === 'nonoperational') return 'bg-red-100 text-red-800';
+    if (status === '已再入/衰减' || statusLower === 'decayed') return 'bg-gray-100 text-gray-800';
+    if (status === '未知' || statusLower === 'unknown') return 'bg-yellow-100 text-yellow-800';
+    if (status === '部分运行' || statusLower === 'partially operational') return 'bg-orange-100 text-orange-800';
+    if (status === '延长任务' || statusLower === 'extended mission') return 'bg-blue-100 text-blue-800';
+    return 'bg-gray-100 text-gray-800';
   };
 
   const InfoRow = ({ label, value, className = "" }) => (
@@ -102,36 +114,35 @@ const SatelliteDetail = ({ satellite, onBack }) => {
         {label}
       </td>
       <td className="px-4 py-3 text-sm text-gray-700 border-b border-gray-200">
-        {value || '未知'}
+        {value || UNKNOWN_VALUE}
       </td>
     </tr>
   );
 
-  // 标签页内容组件
+  /* ---- 基本信息：按要求移除“任务描述”“应用领域” ---- */
   const BasicInfoTab = () => (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <tbody className="bg-white divide-y divide-gray-200">
-          <InfoRow label="卫星名称" value={satellite.fullName} />
-          <InfoRow label="英文名称" value={satellite.englishName} />
-          <InfoRow label="别称" value={satellite.aliases?.join('，') || '无'} />
-          <InfoRow label="COSPAR ID" value={satellite.cosparId || '2018-046A'} />
-          <InfoRow label="NORAD ID" value={satellite.noradId || '43474'} />
-          <InfoRow label="发射日期" value={satellite.launchDate} />
-          <InfoRow label="终止日期" value={satellite.endDate || '在轨运行中'} />
-          <InfoRow label="所有者" value={satellite.country || satellite.owner} />
-          <InfoRow label="卫星机构" value={satellite.agencies?.join(',') || 'NASA,CSA,DLR,ESA,JAXA,Roscosmos'} />
-          <InfoRow label="发射地点" value={satellite.launchSite || 'Wallops Island, Virginia, USA'} />
+          <InfoRow label="卫星名称" value={formatValue(satellite.fullName)} />
+          <InfoRow label="英文名称" value={formatValue(satellite.englishName)} />
+          <InfoRow label="别称" value={formatArrayValue(satellite.aliases || satellite.alternateNames)} />
+          <InfoRow label="COSPAR ID" value={formatValue(satellite.cosparId || satellite.COSPARId)} />
+          <InfoRow label="NORAD ID" value={formatValue(satellite.noradId || satellite.NORADId)} />
+          <InfoRow label="发射日期" value={formatDate(satellite.launchDate)} />
+          <InfoRow label="终止日期" value={satellite.endDate || satellite.eolDate ? formatDate(satellite.endDate || satellite.eolDate) : '在轨运行中'} />
+          <InfoRow label="所有者" value={formatValue(satellite.owner || satellite.country)} />
+          <InfoRow label="卫星机构" value={formatArrayValue(satellite.agencies || (satellite.satelliteAgencies ? [satellite.satelliteAgencies] : []))} />
+          <InfoRow label="发射地点" value={formatValue(satellite.launchSite)} />
           <InfoRow
             label="运行状态"
             value={
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(satellite.status)}`}>
-                {satellite.status || 'Unknown'}
+                {formatValue(satellite.status)}
               </span>
             }
           />
-          <InfoRow label="卫星类型" value={satellite.type || '地球观测'} />
-          <InfoRow label="任务描述" value={satellite.description} />
+          <InfoRow label="卫星类型" value={formatValue(satellite.type || satellite.objectType)} />
         </tbody>
       </table>
     </div>
@@ -141,146 +152,131 @@ const SatelliteDetail = ({ satellite, onBack }) => {
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <tbody className="bg-white divide-y divide-gray-200">
-          <InfoRow label="轨道类型" value={satellite.orbitType || 'LLEO_I (Lower LEO/Intermediate)'} />
-          <InfoRow label="轨道周期 (分钟)" value={satellite.orbitPeriod || '92.47'} />
-          <InfoRow label="轨道高度 (km)" value={satellite.orbitHeight || '400'} />
-          <InfoRow label="远地点高度 (km)" value={satellite.apogeeHeight || '410'} />
-          <InfoRow label="近地点高度 (km)" value={satellite.perigeeHeight || '381'} />
-          <InfoRow label="倾角 (°)" value={satellite.inclination || '51.64'} />
-          <InfoRow label="轨道经度" value={satellite.orbitLongitude || '不适用'} />
-          <InfoRow label="赤道过境时间" value={satellite.crossingTime || '不适用'} />
-          <InfoRow label="重复周期 (天)" value={satellite.revisitPeriod || satellite.revisit || '不适用'} />
-          <InfoRow label="轨道偏心率" value={satellite.eccentricity || '未知'} />
-          <InfoRow label="升交点赤经 (°)" value={satellite.raan || '未知'} />
-          <InfoRow label="近地点幅角 (°)" value={satellite.argumentOfPerigee || '未知'} />
+          <InfoRow label="轨道类型" value={formatValue(satellite.orbitType)} />
+          <InfoRow label="轨道周期" value={formatOrbitPeriod(satellite.orbitPeriod || satellite.period)} />
+          <InfoRow label="轨道高度" value={formatValue(satellite.orbitHeight || satellite.altitude || satellite.orbitAltitude, satellite.orbitAltitude ? ' km' : '')} />
+          <InfoRow label="远地点高度" value={formatValue(satellite.apogeeHeight || satellite.apogee || satellite.orbitParams?.apogeeHeight, ' km')} />
+          <InfoRow label="近地点高度" value={formatValue(satellite.perigeeHeight || satellite.perigee || satellite.orbitParams?.perigeeHeight, ' km')} />
+          <InfoRow label="倾角" value={formatValue(satellite.inclination || satellite.orbitParams?.inclination, '°')} />
+          <InfoRow label="轨道经度" value={formatValue(satellite.orbitLongitude)} />
+          <InfoRow label="轨道中心" value={formatValue(satellite.orbitCenter)} />
+          <InfoRow label="轨道方向" value={formatValue(satellite.orbitSense)} />
+          <InfoRow label="赤道过境时间" value={formatValue(satellite.crossingTime || satellite.ect)} />
+          <InfoRow label="重复周期" value={formatValue(satellite.repeatCycle || satellite.revisitPeriod || satellite.revisit, satellite.repeatCycle ? ' 天' : '')} />
+          <InfoRow label="轨道偏心率" value={formatValue(satellite.eccentricity)} />
+          <InfoRow label="升交点赤经" value={formatValue(satellite.raan, satellite.raan ? '°' : '')} />
+          <InfoRow label="近地点幅角" value={formatValue(satellite.argumentOfPerigee, satellite.argumentOfPerigee ? '°' : '')} />
         </tbody>
       </table>
     </div>
   );
 
-  const TechnicalSpecsTab = () => (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <tbody className="bg-white divide-y divide-gray-200">
-          <InfoRow label="发射质量 (kg)" value={satellite.launchMass || '7200'} />
-          <InfoRow label="干质量 (kg)" value={satellite.dryMass || '2000'} />
-          <InfoRow label="功率 (W)" value={satellite.power || '未知'} />
-          <InfoRow label="设计寿命" value={satellite.designLife || '未知'} />
-          <InfoRow label="制造商" value={satellite.manufacturer || '未知'} />
-          <InfoRow label="平台类型" value={satellite.platform || '未知'} />
-          <InfoRow label="稳定方式" value={satellite.stabilization || '三轴稳定'} />
-          <InfoRow label="推进系统" value={satellite.propulsion || '未知'} />
-          <InfoRow label="通信频段" value={satellite.communicationBands || 'S波段, X波段'} />
-          <InfoRow label="数据传输速率" value={satellite.dataRate || '未知'} />
-          <InfoRow label="存储容量" value={satellite.storageCapacity || '未知'} />
-        </tbody>
-      </table>
-    </div>
-  );
+  /* ---- 载荷信息：移除“载荷列表”和下面的“应用描述” ---- */
+  const PayloadInfoTab = () => {
+    const instrumentNames = satellite.instrumentNames || satellite.instrumentIds || [];
+    const hasInstruments = instrumentNames.length > 0;
 
-  const PayloadInfoTab = () => (
-    <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <tbody className="bg-white divide-y divide-gray-200">
-            <InfoRow label="主要载荷" value="MM Radiometer（Millimetre-wave Radiometer）" />
-            <InfoRow label="载荷类型" value="地球观测载荷" />
-            <InfoRow label="观测光谱" value={satellite.spectralBands?.join(', ') || '毫米波'} />
-            <InfoRow label="空间分辨率" value={satellite.spatialResolution || '未知'} />
-            <InfoRow label="光谱分辨率" value={satellite.spectralResolution || '未知'} />
-            <InfoRow label="时间分辨率" value={satellite.temporalResolution || satellite.revisit || '未知'} />
-            <InfoRow label="观测幅宽" value={satellite.swathWidth || '未知'} />
-            <InfoRow label="观测模式" value={satellite.observationModes || '推扫成像'} />
-          </tbody>
-        </table>
-      </div>
-
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">载荷详细信息</h4>
-        <p className="text-sm text-gray-700">
-          MM Radiometer (Millimetre-wave Radiometer) 是一个毫米波辐射计，用于观测地球大气中的水汽、云层和降水情况。
-          该载荷能够提供高精度的大气参数测量，支持天气预报和气候研究。
-        </p>
-      </div>
-    </div>
-  );
-
-  const ApplicationDataTab = () => (
-    <div className="space-y-4">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <tbody className="bg-white divide-y divide-gray-200">
-            <InfoRow label="主要应用" value="气象观测、大气研究" />
-            <InfoRow label="数据级别" value="L0, L1A, L1B, L2" />
-            <InfoRow label="数据格式" value="HDF5, NetCDF" />
-            <InfoRow label="数据覆盖" value="全球" />
-            <InfoRow label="数据更新频率" value="实时" />
-            <InfoRow label="数据延迟" value="< 3小时" />
-            <InfoRow label="存档状态" value="长期存档" />
-          </tbody>
-        </table>
-      </div>
-
-      <div className="bg-blue-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">OSCAR 描述</h4>
-        <p className="text-sm text-gray-700">
-          Spacecraft engaged in practical applications and uses of space technology such as weather or communications.
-          This satellite provides critical atmospheric and meteorological data for weather forecasting and climate monitoring.
-        </p>
-      </div>
-
-      <div className="bg-green-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">相关网站信息</h4>
-        <div className="space-y-2 text-sm">
-          <div>
-            <span className="font-medium">eoPortal: </span>
-            <a href="#" className="text-blue-600 hover:text-blue-800">
-              https://eoportal.org/web/eoportal/satellite-missions
-            </a>
-          </div>
-          <div>
-            <span className="font-medium">NASA官网: </span>
-            <a href="#" className="text-blue-600 hover:text-blue-800">
-              https://www.nasa.gov/mission_pages/station/research/tempest-d
-            </a>
-          </div>
+    return (
+      <div className="space-y-4">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200">
+              <InfoRow label="主要载荷" value={formatArrayValue(instrumentNames)} />
+              <InfoRow label="载荷类型" value={formatValue(satellite.payloadType || (satellite.isEO === 'Earth observation' ? '地球观测载荷' : UNKNOWN_VALUE))} />
+              <InfoRow label="观测光谱" value={formatArrayValue(satellite.spectralBands)} />
+              <InfoRow label="空间分辨率" value={formatValue(satellite.spatialResolution)} />
+              <InfoRow label="光谱分辨率" value={formatValue(satellite.spectralResolution)} />
+              <InfoRow label="时间分辨率" value={formatValue(satellite.temporalResolution || satellite.revisit)} />
+              <InfoRow label="观测幅宽" value={formatValue(satellite.swathWidth)} />
+              <InfoRow label="观测模式" value={formatValue(satellite.observationModes)} />
+              <InfoRow label="载荷数量" value={hasInstruments ? instrumentNames.length : UNKNOWN_VALUE} />
+            </tbody>
+          </table>
         </div>
       </div>
+    );
+  };
 
-      <div className="bg-yellow-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">数据访问</h4>
-        <div className="space-y-2 text-sm">
-          <div>
-            <span className="font-medium">数据门户: </span>
-            <a href="#" className="text-blue-600 hover:text-blue-800">
-              NASA Goddard Earth Sciences Data and Information Services Center
-            </a>
-          </div>
-          <div>
-            <span className="font-medium">FTP服务: </span>
-            <span className="text-gray-700">ftp://data.gov/satellite/tempest-d/</span>
-          </div>
-          <div>
-            <span className="font-medium">API接口: </span>
-            <span className="text-gray-700">支持REST API访问</span>
-          </div>
+  // 应用与数据：展示 applications_zh / webInfo / dataPortal / eoPortal
+  const ApplicationDataTab = () => {
+    const appsZh = satellite.applicationsZh || satellite.applications_zh || satellite.applications || [];
+    const hasApps = Array.isArray(appsZh) && appsZh.length > 0;
+
+    const webInfo = Array.isArray(satellite.webInfo) ? satellite.webInfo : [];
+    const dataPortal = Array.isArray(satellite.dataPortal) ? satellite.dataPortal : [];
+    const eoPortal = satellite.eoPortal;
+
+    const hasWebInfo = webInfo.length > 0;
+    const hasDataPortal = dataPortal.length > 0;
+    const hasEoPortal = !!eoPortal;
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <h4 className="font-medium text-gray-900 mb-2">应用与场景</h4>
+          {hasApps ? (
+            <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+              {appsZh.map((app, idx) => (
+                <li key={idx}>{app}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500">暂无应用信息</p>
+          )}
         </div>
+
+        {(hasWebInfo || hasDataPortal || hasEoPortal) ? (
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h4 className="font-medium text-gray-900 mb-2">相关网站 / 数据</h4>
+            <div className="space-y-2 text-sm">
+              {hasEoPortal && (
+                <div className="break-all">
+                  <span className="font-medium">eoPortal：</span>
+                  <a href={eoPortal} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 break-all">
+                    {eoPortal}
+                  </a>
+                </div>
+              )}
+
+              {hasWebInfo && webInfo.map((url, index) => (
+                <div key={index} className="break-all">
+                  <span className="font-medium">网站 {index + 1}：</span>
+                  <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 break-all">
+                    {url}
+                  </a>
+                </div>
+              ))}
+
+              {hasDataPortal && dataPortal.map((url, index) => (
+                <div key={index} className="break-all">
+                  <span className="font-medium">数据门户 {index + 1}：</span>
+                  <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 break-all">
+                    {url}
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-500">暂无相关网站或数据门户信息</p>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   const tabs = [
     { id: 'basic', label: '基本信息', component: BasicInfoTab },
     { id: 'orbit', label: '轨道信息', component: OrbitInfoTab },
-    { id: 'technical', label: '技术规格', component: TechnicalSpecsTab },
     { id: 'payload', label: '载荷信息', component: PayloadInfoTab },
     { id: 'application', label: '应用与数据', component: ApplicationDataTab },
   ];
 
   return (
-    <div className="h-screen w-full flex bg-white overflow-hidden">
-      {/* 左侧详情信息 - 固定占据 50% 宽度 */}
-      <div className="w-1/2 flex flex-col border-r border-gray-200 overflow-hidden">
+    <div className="h-full w-full flex bg-white overflow-hidden min-h-0">
+      {/* 左侧详情信息 */}
+      <div className="w-1/2 flex flex-col border-r border-gray-200 overflow-hidden min-h-0">
         {/* 头部 */}
         <div className="flex-shrink-0 p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -300,9 +296,7 @@ const SatelliteDetail = ({ satellite, onBack }) => {
               <button
                 onClick={handleToggleOrbitMap}
                 className={`px-4 py-2 rounded-lg transition-colors ${
-                  showOrbitMap 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  showOrbitMap ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
                 {showOrbitMap ? '隐藏轨道' : '显示轨道'}
@@ -319,19 +313,19 @@ const SatelliteDetail = ({ satellite, onBack }) => {
           <div className="mt-4">
             <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{satellite.fullName}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{formatValue(satellite.fullName)}</h1>
                 {satellite.englishName && (
                   <p className="text-lg text-gray-600 mt-1">{satellite.englishName}</p>
                 )}
                 <div className="flex items-center space-x-4 mt-2">
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(satellite.status)}`}>
-                    {satellite.status || 'Unknown'}
+                    {formatValue(satellite.status)}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {satellite.country || satellite.owner}
+                    {formatValue(satellite.country || satellite.owner)}
                   </span>
                   <span className="text-sm text-gray-500">
-                    发射于 {satellite.launchDate}
+                    发射于 {formatDate(satellite.launchDate)}
                   </span>
                 </div>
               </div>
@@ -362,26 +356,23 @@ const SatelliteDetail = ({ satellite, onBack }) => {
           </nav>
         </div>
 
-        {/* 标签内容 - 可滚动区域 */}
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* 标签内容（可滚动区域） */}
+        <div className="flex-1 overflow-y-auto p-6 pb-8 min-h-0">
           {tabs.find(tab => tab.id === activeTab)?.component()}
         </div>
       </div>
 
-      {/* 右侧 3D 轨道显示 - 固定占据 50% 宽度 */}
-      <div className="w-1/2 flex flex-col bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 overflow-hidden">
-        {/* 🔧 轨道信息面板 - 添加 data-info-panel 标识 */}
-        <div
-          className="flex-shrink-0 p-4 bg-black bg-opacity-30"
-          data-info-panel
-        >
+      {/* 右侧 3D 轨道显示 */}
+      <div className="w-1/2 flex flex-col bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 overflow-hidden min-h-0">
+        {/* 轨道信息面板 */}
+        <div className="flex-shrink-0 p-4 bg-black bg-opacity-30" data-info-panel>
           <div className="bg-white bg-opacity-90 rounded-lg p-4 shadow-md">
             <div className="grid grid-cols-1 gap-4">
               {/* 第一行：卫星名称和状态 */}
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-gray-900">{satellite.fullName}</h3>
+                <h3 className="text-lg font-bold text-gray-900">{formatValue(satellite.fullName)}</h3>
                 <div className="flex items-center space-x-2">
-                  {satellite.status === '在轨运行' || satellite.status === 'Operational' ? (
+                  {satellite.status === '运行中' || satellite.status === 'Operational' ? (
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                       <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
                       在轨运行
@@ -389,7 +380,7 @@ const SatelliteDetail = ({ satellite, onBack }) => {
                   ) : (
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
                       <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
-                      {satellite.status}
+                      {formatValue(satellite.status)}
                     </span>
                   )}
                 </div>
@@ -400,28 +391,25 @@ const SatelliteDetail = ({ satellite, onBack }) => {
                 <div className="bg-white bg-opacity-60 rounded-md p-3">
                   <span className="text-gray-600 block font-medium">轨道高度</span>
                   <span className="text-gray-900 font-bold text-base">
-                    {satellite.altitude || '400-800km'}
+                    {formatValue(satellite.altitude || satellite.orbitAltitude || satellite.orbitHeight, ' km')}
                   </span>
                 </div>
                 <div className="bg-white bg-opacity-60 rounded-md p-3">
                   <span className="text-gray-600 block font-medium">轨道周期</span>
                   <span className="text-gray-900 font-bold text-base">
-                    {satellite.orbitParams?.orbitPeriod ?
-                      `${(satellite.orbitParams.orbitPeriod / 60).toFixed(1)}分钟` :
-                      '90-120分钟'
-                    }
+                    {formatOrbitPeriod(satellite.orbitPeriod || satellite.period)}
                   </span>
                 </div>
                 <div className="bg-white bg-opacity-60 rounded-md p-3">
                   <span className="text-gray-600 block font-medium">轨道倾角</span>
                   <span className="text-gray-900 font-bold text-base">
-                    {satellite.orbitParams?.inclination || satellite.inclination || '约98°'}
+                    {formatValue(satellite.inclination || satellite.orbitParams?.inclination, '°')}
                   </span>
                 </div>
                 <div className="bg-white bg-opacity-60 rounded-md p-3">
                   <span className="text-gray-600 block font-medium">轨道类型</span>
                   <span className="text-gray-900 font-bold text-base">
-                    {satellite.orbit || 'LEO'}
+                    {satellite.orbitType ? satellite.orbitType.split(' ')[0] : 'LEO'}
                   </span>
                 </div>
               </div>
@@ -442,23 +430,10 @@ const SatelliteDetail = ({ satellite, onBack }) => {
           </div>
         </div>
 
-        {/* 🔧 3D地图容器 - 使用动态高度并确保显示完整 */}
-        <div
-          ref={mapContainerRef}
-          className="flex-1 relative min-h-0"
-          style={{
-            height: containerHeight === '100vh' ? 'calc(100vh - 200px)' : containerHeight,
-            minHeight: '400px' // 确保最小高度
-          }}
-        >
+        {/* 3D地图容器：纯 flex-1，自适应剩余高度 */}
+        <div ref={mapContainerRef} className="flex-1 relative min-h-0">
           {showOrbitMap ? (
-            <div
-              className="absolute inset-0 w-full h-full"
-              style={{
-                // 🔧 确保 Cesium 控制器完全可见
-                paddingBottom: '70px' // 为底部控制器预留空间
-              }}
-            >
+            <div className="absolute inset-0 w-full h-full">
               <EnhancedCesiumMap
                 key={`satellite-orbit-${satellite.id}-${mapKey}`}
                 location={null}
@@ -468,8 +443,7 @@ const SatelliteDetail = ({ satellite, onBack }) => {
                   console.log('点击卫星:', satelliteName);
                 }}
               />
-
-              {/* 🔧 新增：底部渐变遮罩，确保控制器可见性 */}
+              {/* 底部渐隐遮罩：仅视觉效果，不影响交互 */}
               <div
                 className="absolute bottom-0 left-0 right-0 pointer-events-none"
                 style={{
@@ -484,7 +458,7 @@ const SatelliteDetail = ({ satellite, onBack }) => {
               <div className="text-center text-white">
                 <div className="text-6xl mb-4">🛰️</div>
                 <h3 className="text-xl font-semibold mb-2">轨道视图已隐藏</h3>
-                <p className="text-gray-300">点击"显示轨道"按钮查看3D轨道</p>
+                <p className="text-gray-300">点击“显示轨道”按钮查看 3D 轨道</p>
               </div>
             </div>
           )}

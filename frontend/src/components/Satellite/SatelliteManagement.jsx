@@ -1,20 +1,185 @@
-// components/Satellite/SatelliteManagement.jsx - 修复版本：改进过滤器合并逻辑
+// components/Satellite/SatelliteManagement.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import SatelliteFilters from './SatelliteFilters';
 import SatelliteList from './SatelliteList';
 import SatelliteDetail from './SatelliteDetail';
 import SatelliteChat from './SatelliteChat';
-import DataUpdateRecords from './DataUpdateRecords';
-import { SATELLITE_DATABASE } from '../../config/satelliteDatabase';
+// ✅ 引入 JSON 数据源（Vite 原生支持 JSON 导入）
+import eo from '../../config/eo_satellite.zh.json';
+
+/* -------------------- 内联适配器：把 JSON 数组 → 旧的对象结构 -------------------- */
+// 小工具
+const splitToArray = (s) => (s ? String(s).split(/[;,，、]\s*/).filter(Boolean) : []);
+// —— 解析出轨道代码（始终返回代码字符串）——
+const parseOrbitCode = (raw) => {
+  if (!raw) return 'UNKNOWN';
+  const s = String(raw).trim();
+
+  // 1) 先看中文/英文括号里是否有代码：如 “中地轨道（MEO）”、“GEO（GEO_S）”
+  const mParen = s.match(/[（(]\s*([A-Z][A-Z0-9_]{1,8})\s*[)）]/);
+  if (mParen) return mParen[1];
+
+  // 2) 再看是否以代码打头：如 “LEO_I (xxx)”
+  const mHead = s.match(/^([A-Z][A-Z0-9_]{1,8})/);
+  if (mHead) return mHead[1];
+
+  // 3) 中文关键词兜底
+  if (/中地/.test(s)) return 'MEO';
+  if (/转移/.test(s)) return 'GTO';
+  if (/地球同步/.test(s)) return 'GEO_S';
+  if (/高椭圆|莫尔尼亚|molniya/i.test(s)) return /莫尔尼亚|molniya/i.test(s) ? 'HEO_M' : 'HEO';
+  if (/近地|低轨|LEO/i.test(s)) return 'LEO_I';
+  return 'UNKNOWN';
+};
+
+// —— 代码 → 统一展示“中文（代码）”——
+const ORBIT_DISPLAY_MAP = {
+  // 近地近地轨道（LEO 系列）
+  LEO_I: '近地倾斜轨道（LEO_I）',
+  LEO_S: '太阳同步近地轨道（LEO_S）',
+  LEO_P: '近地极地轨道（LEO_P）',
+  LEO_E: '近地椭圆轨道（LEO_E）',
+  LEO_R: '近地逆行轨道（LEO_R）',
+
+  // 超低近地轨道（LLEO 系列）
+  LLEO_I: '超低近地倾斜轨道（LLEO_I）',
+  LLEO_S: '超低太阳同步近地轨道（LLEO_S）',
+  LLEO_P: '超低近地极地轨道（LLEO_P）',
+  LLEO_R: '超低近地逆行轨道（LLEO_R）',
+
+  // 中地轨道
+  MEO: '中地轨道（MEO）',
+
+  // 地球同步轨道（GEO 系列）
+  GEO_S: '地球同步轨道（GEO_S）',
+  GEO_I: '倾斜地球同步轨道（GEO_I）',
+  GEO_R: '地球同步漂移轨道（GEO_R）',
+  GEO_D: '地球同步弃置轨道（GEO_D）',
+  GEO_T: '地球同步试验轨道（GEO_T）',
+  GEO_ID: '地球同步轨道（GEO_ID）', // 缩写含义未查到，请确认
+  GEO_NS: '地球同步轨道（GEO_NS）', // 缩写含义未查到，请确认
+
+  // 高椭圆轨道（HEO 系列）
+  HEO: '高椭圆轨道（HEO）',
+  HEO_M: '莫尔尼亚轨道（HEO_M）',
+  HEO_R: '高椭圆轨道（HEO_R）',
+
+  // 其他轨道类型
+  VHEO: '极高地球轨道（VHEO）',
+  GTO: '地球同步转移轨道（GTO）',
+  CLO: '环月轨道（CLO）',
+  DSO: '深空轨道（DSO）',
+
+  UNKNOWN: '未知轨道（UNKNOWN）',
+};
+
+
+const toOrbitDisplay = (codeOrRaw) => {
+  const code = parseOrbitCode(codeOrRaw);
+  return ORBIT_DISPLAY_MAP[code] || `未知（${code}）`;
+};
+
+
+// ✅ 状态直接展示（英文 → 中文映射），不做“合并/归类”
+const mapStatusZh = (v) => {
+  const t = String(v || '').trim().toLowerCase();
+  if (t === 'operational') return '运行中';
+  if (t === 'nonoperational') return '停用/退役';
+  if (t === 'partially operational') return '部分运行';
+  if (t === 'extended mission') return '延长任务';
+  if (t === 'backup/standby' || t === 'backup' || t === 'standby') return '备用/待机';
+  if (t === 'decayed') return '已再入/衰减';
+  if (t === 'unknown' || !t) return '未知';
+  // 兜底：如果是其他英文状态，直接原样返回；否则仍给“未知”
+  return /[a-z]/.test(t) ? v : '未知';
+};
+
+// 适配：把 eo_satellite.zh.json（数组）转换成页面一直使用的对象结构 SATELLITE_DATABASE
+const adaptEoToLegacy = (list) => Object.fromEntries(
+  (Array.isArray(list) ? list : []).map((rec, idx) => {
+    const id = rec.NORADId ?? rec.COSPARId ?? `${rec.satelliteName || 'SAT'}-${idx}`;
+    const fullName = rec.satelliteName_zh || rec.satelliteName || `SAT-${id}`;
+    const englishName = (rec.alternateNames && rec.alternateNames[0]) || rec.satelliteName || '';
+    const owner = rec.owner_zh || rec.owner || rec.satelliteAgencies_zh || rec.satelliteAgencies || 'Unknown';
+    const agencies = splitToArray(rec.satelliteAgencies_zh || rec.satelliteAgencies);
+    const orbitTypeCode = parseOrbitCode(rec.orbitType_zh || rec.orbitType);
+    const orbitType = ORBIT_DISPLAY_MAP[orbitTypeCode] || `未知（${orbitTypeCode}）`;
+    const periodMin = (rec.period != null && !Number.isNaN(Number(rec.period))) ? Number(rec.period) : undefined;
+
+    return [fullName, {
+      // —— 列表 / 筛选常用字段 —— 
+      id,
+      fullName,
+      englishName,
+      // ❌ 删除“描述清洗/去重/摘要”的逻辑与字段（未使用）
+      // description: ...
+      launchDate: rec.launchDate || '',     // ISO: YYYY-MM-DD
+      endDate: rec.eolDate || null,
+      owner,
+      country: owner,                       // 向后兼容
+      // ✅ 仅使用 operStatusCode，并映射为中文展示值
+      status: mapStatusZh(rec.operStatusCode),
+      orbitType,         // ✅ 用于界面&筛选：始终是“中文（代码）”
+      orbitTypeCode,     // ✅ 备用：纯代码（如需要做统计或对接）
+
+      orbitPeriod: periodMin,               // 分钟（数字）
+
+      // —— 详情页字段（尽量补齐） —— 
+      aliases: rec.alternateNames || [],
+      cosparId: rec.COSPARId || '',
+      noradId: rec.NORADId || '',
+      agencies,
+      type: rec.objectType_zh || rec.objectType || '地球观测',
+      launchSite: rec.launchSite_zh || rec.launchSite || '',
+      crossingTime: rec.ect || '',
+      orbitLongitude: rec.orbitLongitude || '',
+      revisit: rec.repeatCycle || '',
+      revisitPeriod: rec.repeatCycle || '',
+
+      // 轨道细节
+      altitude: rec.orbitAltitude || '',
+      orbitParams: {
+        inclination: rec.inclination,   // °
+        apogeeHeight: rec.apogee,       // km
+        perigeeHeight: rec.perigee,     // km
+      },
+
+      // 载荷/仪器（源数据缺就留空）
+      spectralBands: [],
+      swathWidth: '',
+      spatialResolution: '',
+      instrumentNames: rec.instrumentNames_zh || rec.instrumentNames || [],
+      instrumentIds: rec.instrumentIds || [],
+
+      // ✅ 新增：应用与数据相关字段（供详情页“应用与数据”使用）
+      applications: rec.applications || rec.applications_zh || [],
+      applicationsZh: rec.applications_zh || rec.applications || [],
+      webInfo: Array.isArray(rec.webInfo) ? rec.webInfo : [],
+      dataPortal: Array.isArray(rec.dataPortal) ? rec.dataPortal : [],
+      eoPortal: rec.eoPortal || '',
+    }];
+  })
+);
+
+// ✅ 页面后续逻辑仍然使用这个名字，其他组件无感知
+const SATELLITE_DATABASE = adaptEoToLegacy(eo);
+
+/* -------------------- 通用：安全取年份（兼容 ISO 和 “YYYY年…”） -------------------- */
+const getYear = (val) => {
+  if (!val) return 0;
+  const d = new Date(val);
+  if (!Number.isNaN(d.getTime())) return d.getFullYear(); // 兼容 YYYY-MM-DD
+  const m = String(val).match(/^(\d{4})年/);              // 兼容 “2013年4月26日”
+  return m ? Number(m[1]) : 0;
+};
 
 const SatelliteManagement = ({ onBack }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSatellite, setSelectedSatellite] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [showDataUpdateRecords, setShowDataUpdateRecords] = useState(false);
 
-  // 🔧 修复：确保初始 filters 结构完整
+  // 过滤器默认结构（集中管理）
   const defaultFilters = {
     launchDateRange: { start: '', end: '' },
     status: [],
@@ -27,252 +192,167 @@ const SatelliteManagement = ({ onBack }) => {
     launchSite: [],
     endDateRange: { start: '', end: '' }
   };
-
   const [filters, setFilters] = useState(defaultFilters);
 
-  // 🔧 修复：改进 onFiltersChange 函数，确保安全合并
+  // 安全合并过滤器
   const handleFiltersChange = (newFiltersOrUpdater) => {
     setFilters(prevFilters => {
-      let newFilters;
+      const incoming = (typeof newFiltersOrUpdater === 'function')
+        ? newFiltersOrUpdater(prevFilters)
+        : newFiltersOrUpdater;
 
-      if (typeof newFiltersOrUpdater === 'function') {
-        // 如果是函数，执行函数获取新的 filters
-        newFilters = newFiltersOrUpdater(prevFilters);
-      } else {
-        // 如果是对象，直接使用
-        newFilters = newFiltersOrUpdater;
-      }
+      const safe = { ...defaultFilters, ...prevFilters, ...incoming };
 
-      // 🔧 安全合并：确保所有必要的字段都存在
-      const safeNewFilters = {
-        ...defaultFilters, // 首先使用默认值
-        ...prevFilters,    // 然后使用之前的值
-        ...newFilters      // 最后应用新的值
-      };
-
-      // 🔧 验证数组字段
-      const arrayFields = ['status', 'owner', 'orbitType', 'launchSite'];
-      arrayFields.forEach(field => {
-        if (!Array.isArray(safeNewFilters[field])) {
-          safeNewFilters[field] = [];
-        }
+      // 数组字段兜底
+      ['status', 'owner', 'orbitType', 'launchSite'].forEach(f => {
+        if (!Array.isArray(safe[f])) safe[f] = [];
       });
 
-      // 🔧 验证对象字段
-      const objectFields = [
-        'launchDateRange', 'orbitPeriodRange', 'revisitRange',
-        'crossingTimeRange', 'orbitLongitudeRange', 'endDateRange'
-      ];
-      objectFields.forEach(field => {
-        if (!safeNewFilters[field] || typeof safeNewFilters[field] !== 'object') {
-          safeNewFilters[field] = field.includes('Range') && !field.includes('DateRange') && !field.includes('TimeRange')
-            ? { min: '', max: '' }
-            : { start: '', end: '' };
-        }
-      });
+      // 区间对象兜底
+      ['launchDateRange', 'orbitPeriodRange', 'revisitRange', 'crossingTimeRange', 'orbitLongitudeRange', 'endDateRange']
+        .forEach(f => {
+          const v = safe[f];
+          if (!v || typeof v !== 'object') {
+            safe[f] = (f.includes('Period') || f.includes('Longitude') || f.includes('revisit'))
+              ? { min: '', max: '' }
+              : { start: '', end: '' };
+          }
+        });
 
-      console.log('🔄 更新 filters:', safeNewFilters);
-      return safeNewFilters;
+      return safe;
     });
   };
 
-  // 处理数据库数据，添加错误处理和加载状态
+  /* -------------------- 读库 & 规范化：对象 → 数组 -------------------- */
   const satelliteData = useMemo(() => {
     try {
-      // 检查数据库是否存在
-      if (!SATELLITE_DATABASE || typeof SATELLITE_DATABASE !== 'object') {
-        console.error('SATELLITE_DATABASE 未正确导入或为空');
-        return [];
-      }
+      if (!SATELLITE_DATABASE || typeof SATELLITE_DATABASE !== 'object') return [];
 
       const entries = Object.entries(SATELLITE_DATABASE);
-      if (entries.length === 0) {
-        console.warn('SATELLITE_DATABASE 为空对象');
-        return [];
-      }
+      if (entries.length === 0) return [];
 
-      const processedData = entries.map(([key, satellite]) => {
-        // 确保 satellite 是对象
-        if (!satellite || typeof satellite !== 'object') {
-          console.warn(`卫星数据异常: ${key}`, satellite);
-          return null;
-        }
+      const processed = entries.map(([key, s]) => {
+        if (!s || typeof s !== 'object') return null;
+
+        // ✅ 状态不再二次归类，直接使用中文展示值
+        const statusDisplay = s.status || '未知';
+
+        const orbitTypeStd =
+              s.orbitType ||
+              ORBIT_DISPLAY_MAP[s.orbitTypeCode] ||
+              ORBIT_DISPLAY_MAP['LEO_I'];
+
+        // 统一成“分钟”数值
+        const periodMin = (s.orbitPeriod != null && !Number.isNaN(Number(s.orbitPeriod)))
+          ? Number(s.orbitPeriod)
+          : (s.orbitParams?.orbitPeriod ? Number(s.orbitParams.orbitPeriod) / 60 : undefined);
 
         return {
-          id: key,
-          ...satellite,
-          // 模拟一些缺失的字段，添加默认值保护
-          status: satellite.status === '在轨运行' ? 'Operational' :
-                  satellite.status === '失效' ? 'Nonoperational' :
-                  satellite.status || 'Unknown',
-          owner: satellite.country || satellite.owner || 'Unknown',
-          orbitType: satellite.orbit?.includes('太阳同步') ? 'LLEO_S' :
-                     satellite.orbit?.includes('地球同步') ? 'GEO_S' :
-                     'LEO_I',
-          orbitPeriod: satellite.orbitParams?.orbitPeriod ?
-                       (satellite.orbitParams.orbitPeriod / 60).toFixed(2) :
-                       '97.4',
-          revisitPeriod: satellite.revisit || 'Unknown',
-          crossingTime: satellite.orbitParams?.crossingTime || 'Unknown',
-          orbitLongitude: 'Unknown',
-          launchSite: satellite.country === '中国' ? 'Jiuquan Space Center, PRC' :
-                      satellite.country === '美国' ? 'Air Force Eastern Test Range' :
-                      'Unknown',
-          endDate: satellite.status !== '在轨运行' ? '2023-12-31' : null
+          id: s.id || key,
+          ...s,
+          status: statusDisplay,
+          owner: s.owner || s.country || 'Unknown',
+          orbitType: orbitTypeStd,
+          orbitPeriod: periodMin ?? 97.4, // 缺失时给一个合理默认
+          revisitPeriod: s.revisitPeriod || s.revisit || 'Unknown',
+          crossingTime: s.crossingTime || s.orbitParams?.crossingTime || 'Unknown',
+          orbitLongitude: s.orbitLongitude || 'Unknown',
+          launchSite: s.launchSite ||
+            (s.country === '中国' ? 'Jiuquan Space Center, PRC'
+              : s.country === '美国' ? 'Air Force Eastern Test Range'
+              : 'Unknown'),
+          endDate: s.endDate ?? null,
         };
-      }).filter(Boolean); // 过滤掉 null 值
+      }).filter(Boolean);
 
-      console.log(`成功处理 ${processedData.length} 颗卫星数据`);
-      return processedData;
-    } catch (error) {
-      console.error('处理卫星数据时出错:', error);
+      return processed;
+    } catch (e) {
+      console.error('处理卫星数据时出错:', e);
       return [];
     }
   }, []);
 
-  // 应用过滤器，添加防护措施
+  /* -------------------- 搜索 + 过滤：得到当前视图 -------------------- */
   const filteredSatellites = useMemo(() => {
     try {
-      // 确保 satelliteData 是数组
-      if (!Array.isArray(satelliteData)) {
-        console.error('satelliteData 不是数组:', typeof satelliteData);
-        return [];
-      }
+      if (!Array.isArray(satelliteData)) return [];
 
       return satelliteData.filter(satellite => {
-        try {
-          // 确保 satellite 对象存在
-          if (!satellite || typeof satellite !== 'object') {
-            return false;
-          }
+        if (!satellite || typeof satellite !== 'object') return false;
 
-          // 搜索查询
-          if (searchQuery && searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            const fullName = (satellite.fullName || '').toLowerCase();
-            const englishName = (satellite.englishName || '').toLowerCase();
+        // 搜索：中英文名
+        if (searchQuery && searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const full = (satellite.fullName || '').toLowerCase();
+          const eng = (satellite.englishName || '').toLowerCase();
+          if (!full.includes(q) && !eng.includes(q)) return false;
+        }
 
-            if (!fullName.includes(query) && !englishName.includes(query)) {
-              return false;
-            }
-          }
-
-          // 🔧 修复：安全的过滤器检查
-          // 运行状态过滤
-          if (Array.isArray(filters.status) && filters.status.length > 0 &&
-              !filters.status.includes(satellite.status)) {
-            return false;
-          }
-
-          // 所有者过滤
-          if (Array.isArray(filters.owner) && filters.owner.length > 0 &&
-              !filters.owner.includes(satellite.owner)) {
-            return false;
-          }
-
-          // 轨道类型过滤
-          if (Array.isArray(filters.orbitType) && filters.orbitType.length > 0 &&
-              !filters.orbitType.includes(satellite.orbitType)) {
-            return false;
-          }
-
-          // 发射日期范围过滤
-          if (filters.launchDateRange &&
-              (filters.launchDateRange.start || filters.launchDateRange.end)) {
-            const launchDate = satellite.launchDate || '';
-            const launchYear = parseInt(launchDate.split('年')[0]) || 0;
-
-            const startYear = filters.launchDateRange.start ?
-              parseInt(filters.launchDateRange.start.split('-')[0]) : 0;
-            const endYear = filters.launchDateRange.end ?
-              parseInt(filters.launchDateRange.end.split('-')[0]) : 9999;
-
-            if (launchYear < startYear || launchYear > endYear) {
-              return false;
-            }
-          }
-
-          // 轨道周期范围过滤
-          if (filters.orbitPeriodRange &&
-              (filters.orbitPeriodRange.min || filters.orbitPeriodRange.max)) {
-            const period = parseFloat(satellite.orbitPeriod) || 0;
-            const min = parseFloat(filters.orbitPeriodRange.min) || 0;
-            const max = parseFloat(filters.orbitPeriodRange.max) || Infinity;
-
-            if (period < min || period > max) {
-              return false;
-            }
-          }
-
-          return true;
-        } catch (filterError) {
-          console.error('过滤单个卫星时出错:', filterError, satellite);
+        // 状态（注意：这里的 status 已是中文展示值）
+        if (Array.isArray(filters.status) && filters.status.length > 0 &&
+            !filters.status.includes(satellite.status)) {
           return false;
         }
+        // 所有者
+        if (Array.isArray(filters.owner) && filters.owner.length > 0 &&
+            !filters.owner.includes(satellite.owner)) {
+          return false;
+        }
+        // 轨道类型
+        if (Array.isArray(filters.orbitType) && filters.orbitType.length > 0 &&
+            !filters.orbitType.includes(satellite.orbitType)) {
+          return false;
+        }
+
+        // 发射年份范围（✅ 用通用 getYear）
+        if (filters.launchDateRange && (filters.launchDateRange.start || filters.launchDateRange.end)) {
+          const ly = getYear(satellite.launchDate);
+          const sy = filters.launchDateRange.start ? getYear(filters.launchDateRange.start) : 0;
+          const ey = filters.launchDateRange.end ? getYear(filters.launchDateRange.end) : 9999;
+          if (ly < sy || ly > ey) return false;
+        }
+
+        // 轨道周期范围（分钟）
+        if (filters.orbitPeriodRange && (filters.orbitPeriodRange.min || filters.orbitPeriodRange.max)) {
+          const p = Number(satellite.orbitPeriod) || 0;
+          const min = Number(filters.orbitPeriodRange.min) || 0;
+          const max = Number(filters.orbitPeriodRange.max) || Infinity;
+          if (p < min || p > max) return false;
+        }
+
+        return true;
       });
-    } catch (error) {
-      console.error('应用过滤器时出错:', error);
+    } catch (e) {
+      console.error('应用过滤器时出错:', e);
       return [];
     }
   }, [satelliteData, searchQuery, filters]);
 
-  // 修复：统计信息，添加安全检查
+  /* -------------------- 统计：供筛选侧栏计数 -------------------- */
   const statistics = useMemo(() => {
-    const stats = {
-      status: {},
-      owner: {},
-      orbitType: {},
-      launchSite: {}
-    };
+    const stats = { status: {}, owner: {}, orbitType: {}, launchSite: {} };
+    if (!Array.isArray(filteredSatellites)) return stats;
 
-    try {
-      if (!Array.isArray(filteredSatellites)) {
-        console.warn('filteredSatellites 不是数组，返回空统计');
-        return stats;
-      }
-
-      filteredSatellites.forEach(satellite => {
-        try {
-          if (!satellite || typeof satellite !== 'object') {
-            return;
-          }
-
-          // 状态统计
-          const status = satellite.status || 'Unknown';
-          stats.status[status] = (stats.status[status] || 0) + 1;
-
-          // 所有者统计
-          const owner = satellite.owner || 'Unknown';
-          stats.owner[owner] = (stats.owner[owner] || 0) + 1;
-
-          // 轨道类型统计
-          const orbitType = satellite.orbitType || 'Unknown';
-          stats.orbitType[orbitType] = (stats.orbitType[orbitType] || 0) + 1;
-
-          // 发射地点统计
-          const launchSite = satellite.launchSite || 'Unknown';
-          stats.launchSite[launchSite] = (stats.launchSite[launchSite] || 0) + 1;
-        } catch (statError) {
-          console.error('统计单个卫星时出错:', statError, satellite);
-        }
-      });
-    } catch (error) {
-      console.error('生成统计信息时出错:', error);
-    }
+    filteredSatellites.forEach(s => {
+      const st = s.status || '未知';
+      const ow = s.owner || 'Unknown';
+      const ot = s.orbitType || 'Unknown';
+      const ls = s.launchSite || 'Unknown';
+      stats.status[st] = (stats.status[st] || 0) + 1;
+      stats.owner[ow] = (stats.owner[ow] || 0) + 1;
+      stats.orbitType[ot] = (stats.orbitType[ot] || 0) + 1;
+      stats.launchSite[ls] = (stats.launchSite[ls] || 0) + 1;
+    });
 
     return stats;
   }, [filteredSatellites]);
 
-  // 添加：数据加载效果
+  /* -------------------- 加载态 & 调试 -------------------- */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
-
+    const timer = setTimeout(() => setIsLoading(false), 100);
     return () => clearTimeout(timer);
   }, []);
 
-  // 添加：调试信息
   useEffect(() => {
     console.log('卫星管理组件状态:', {
       satelliteDataLength: satelliteData?.length || 0,
@@ -287,35 +367,24 @@ const SatelliteManagement = ({ onBack }) => {
     });
   }, [satelliteData, filteredSatellites, searchQuery, filters, isLoading]);
 
+  /* -------------------- 事件 -------------------- */
   const handleSatelliteSelect = (satellite) => {
-    try {
-      if (!satellite) {
-        console.error('尝试选择空的卫星对象');
-        return;
-      }
-      setSelectedSatellite(satellite);
-      setShowDetail(true);
-    } catch (error) {
-      console.error('选择卫星时出错:', error);
-    }
+    if (!satellite) return;
+    setSelectedSatellite(satellite);
+    setShowDetail(true);
   };
 
   const handleBackToList = () => {
-    try {
-      setShowDetail(false);
-      setSelectedSatellite(null);
-    } catch (error) {
-      console.error('返回列表时出错:', error);
-    }
+    setShowDetail(false);
+    setSelectedSatellite(null);
   };
 
-  // 🔧 修复：改进搜索查询处理
   const handleSearchChange = (query) => {
-    console.log('🔍 搜索查询更新:', query);
     setSearchQuery(query || '');
   };
 
-  // 添加：错误边界处理
+  /* -------------------- 渲染 -------------------- */
+  // 基础校验
   if (!SATELLITE_DATABASE) {
     return (
       <div className="h-screen bg-gray-50 flex items-center justify-center">
@@ -334,7 +403,6 @@ const SatelliteManagement = ({ onBack }) => {
     );
   }
 
-  // 添加：加载状态
   if (isLoading) {
     return (
       <div className="h-screen bg-gray-50 flex items-center justify-center">
@@ -347,7 +415,6 @@ const SatelliteManagement = ({ onBack }) => {
     );
   }
 
-  // 修复：安全地获取数组长度
   const satelliteCount = Array.isArray(filteredSatellites) ? filteredSatellites.length : 0;
 
   return (
@@ -369,17 +436,6 @@ const SatelliteManagement = ({ onBack }) => {
             <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded">
               {satelliteCount} 颗卫星
             </span>
-            
-            {/* 数据更新记录按钮 */}
-            <button
-              onClick={() => setShowDataUpdateRecords(true)}
-              className="flex items-center text-gray-600 hover:text-blue-600 transition-colors bg-white border border-gray-300 px-3 py-1.5 rounded-md hover:border-blue-300"
-            >
-              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              数据更新
-            </button>
           </div>
 
           {/* 搜索框 */}
@@ -413,9 +469,9 @@ const SatelliteManagement = ({ onBack }) => {
               />
             </div>
 
-            {/* 中间卫星列表 */}
+            {/* 中间卫星列表 - 修复：移除多余的滚动容器 */}
             <div className="flex-1 overflow-hidden flex">
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 min-h-0">  {/* 关键修改：移除 overflow-y-auto，添加 min-h-0 */}
                 <SatelliteList
                   satellites={filteredSatellites || []}
                   onSatelliteSelect={handleSatelliteSelect}
@@ -434,20 +490,15 @@ const SatelliteManagement = ({ onBack }) => {
             </div>
           </>
         ) : (
-          /* 卫星详情页面 */
-          <SatelliteDetail
-            satellite={selectedSatellite}
-            onBack={handleBackToList}
-          />
+              /* 卫星详情页面 */
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <SatelliteDetail
+                  satellite={selectedSatellite}
+                  onBack={handleBackToList}
+                />
+              </div>
         )}
       </div>
-      
-      {/* 数据更新记录弹窗 */}
-      {showDataUpdateRecords && (
-        <DataUpdateRecords 
-          onClose={() => setShowDataUpdateRecords(false)}
-        />
-      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-// components/Satellite/SatelliteList.jsx - 卫星列表组件（优化UI设计：淡蓝色标题+圆角卡片布局）
+// components/Satellite/SatelliteList.jsx
 import React, { useState } from 'react';
 
 const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
@@ -53,55 +53,95 @@ const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
 
   // 获取状态颜色
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Operational':
+    const s = String(status || '').toLowerCase(); // 英文会变小写，中文不受影响
+    switch (s) {
+      case 'operational':
+      case '运行中':
         return 'bg-green-100 text-green-800';
-      case 'Nonoperational':
+
+      case 'nonoperational':
+      case '停用/退役':
+      case 'decayed':
+      case '已再入/衰减':
         return 'bg-red-100 text-red-800';
-      case 'Decayed':
-        return 'bg-gray-100 text-gray-800';
-      case 'Unknown':
+
+      case 'unknown':
+      case '未知':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Partially Operational':
+
+      case 'partially operational':
+      case '部分运行':
         return 'bg-orange-100 text-orange-800';
-      case 'Extended Mission':
+
+      case 'extended mission':
+      case '延长任务':
         return 'bg-blue-100 text-blue-800';
+
+      case 'backup/standby':
+      case '备用/待机':
+        return 'bg-purple-100 text-purple-800';
+
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  // 高亮搜索关键词
+  // 高亮搜索关键词（转义特殊字符，避免正则报错）
+  const escapeRegExp = (s = '') => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const highlightText = (text, query) => {
     if (!query || !text) return text;
-
-    const regex = new RegExp(`(${query})`, 'gi');
-    const parts = text.split(regex);
-
+    const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+    const parts = String(text).split(regex);
     return parts.map((part, index) =>
       regex.test(part) ? (
         <mark key={index} className="bg-yellow-200 px-1 rounded">
           {part}
         </mark>
-      ) : part
+      ) : (
+        part
+      )
     );
+  };
+
+  /* ---------------- 别名逻辑：中文主名 + 去重别名（含英文） ---------------- */
+  const isChinese = (s = '') => /[\u4e00-\u9fa5]/.test(String(s));
+  const buildAliasList = (satellite = {}) => {
+    const primary = String(satellite.fullName || '').trim();
+    const lowerPrimary = primary.toLowerCase();
+    const rawAliases = Array.isArray(satellite.aliases) ? [...satellite.aliases] : [];
+
+    // 若主名是中文，把英文名并入别名候选
+    if (isChinese(primary) && satellite.englishName) {
+      rawAliases.unshift(satellite.englishName);
+    }
+
+    // 去空、大小写去重、去掉与主名相同的项
+    const seen = new Set();
+    return rawAliases
+      .map((v) => String(v || '').trim())
+      .filter(Boolean)
+      .filter((v) => v.toLowerCase() !== lowerPrimary)
+      .filter((v) => {
+        const k = v.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
   };
 
   const SortButton = ({ field, children }) => (
     <button
       onClick={() => handleSort(field)}
       className={`flex items-center space-x-1 px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-        sortField === field 
-          ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+        sortField === field
+          ? 'bg-blue-100 text-blue-700 border border-blue-200'
           : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
       }`}
     >
       <span>{children}</span>
       {sortField === field && (
         <svg
-          className={`w-4 h-4 transition-transform ${
-            sortDirection === 'desc' ? 'rotate-180' : ''
-          }`}
+          className={`w-4 h-4 transition-transform ${sortDirection === 'desc' ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -114,7 +154,7 @@ const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      {/* 🎨 优化：标题区域 - 淡蓝色背景 */}
+      {/* 头部 */}
       <div className="bg-gradient-to-r from-white-50 to-indigo-50 border-b border-black-200 shadow-sm">
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
@@ -132,8 +172,8 @@ const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm text-gray-700 font-medium">排序方式：</span>
             <div className="flex items-center gap-2 flex-wrap">
-              <SortButton field="fullName">名称</SortButton>
               <SortButton field="launchDate">发射日期</SortButton>
+              <SortButton field="fullName">名称</SortButton>
               <SortButton field="status">状态</SortButton>
               <SortButton field="owner">所有者</SortButton>
               <SortButton field="orbitPeriod">轨道周期</SortButton>
@@ -142,7 +182,7 @@ const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
         </div>
       </div>
 
-      {/* 🎨 优化：卫星列表 - 卡片式布局 */}
+      {/* 列表 */}
       <div className="flex-1 overflow-y-auto">
         {paginatedSatellites.length === 0 ? (
           <div className="flex items-center justify-center h-64">
@@ -162,17 +202,28 @@ const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    {/* 卫星名称 */}
+                    {/* 主名（中文优先） */}
                     <h3 className="text-lg font-semibold text-gray-900 truncate mb-1">
                       {highlightText(satellite.fullName, searchQuery)}
                     </h3>
 
-                    {/* 英文名称 */}
-                    {satellite.englishName && (
-                      <p className="text-sm text-gray-600 mb-3">
-                        {highlightText(satellite.englishName, searchQuery)}
-                      </p>
-                    )}
+                    {/* 别名 chips（含英文，去重且不与主名重复） */}
+                    {(() => {
+                      const aliasList = buildAliasList(satellite);
+                      return aliasList.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {aliasList.map((name, i) => (
+                            <span
+                              key={i}
+                              className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs"
+                              title={name}
+                            >
+                              {highlightText(name, searchQuery)}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
 
                     {/* 基本信息网格 */}
                     <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
@@ -204,17 +255,12 @@ const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
 
                   {/* 右侧状态和操作 */}
                   <div className="ml-6 flex flex-col items-end space-y-3">
-                    {/* 状态标签 */}
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-sm ${getStatusColor(satellite.status)}`}>
                       {satellite.status || 'Unknown'}
                     </span>
-
-                    {/* 国家标识 */}
                     <span className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full font-medium">
                       {satellite.country || satellite.owner}
                     </span>
-
-                    {/* 查看详情按钮 */}
                     <button className="text-blue-600 hover:text-blue-800 text-sm font-medium bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-colors">
                       查看详情 →
                     </button>
@@ -226,7 +272,7 @@ const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
         )}
       </div>
 
-      {/* 🎨 优化：分页控制 - 保持淡蓝色主题 */}
+      {/* 分页 */}
       {totalPages > 1 && (
         <div className="bg-gradient-to-r from-green-50 to-indigo-50 border-t border-black-200">
           <div className="p-4">
@@ -244,12 +290,11 @@ const SatelliteList = ({ satellites, onSatelliteSelect, searchQuery }) => {
                   上一页
                 </button>
 
-                {/* 页码显示 */}
+                {/* 页码显示（最多 5 个） */}
                 <div className="flex space-x-1">
                   {[...Array(Math.min(5, totalPages))].map((_, i) => {
                     const pageNum = Math.max(1, currentPage - 2) + i;
                     if (pageNum > totalPages) return null;
-
                     return (
                       <button
                         key={pageNum}

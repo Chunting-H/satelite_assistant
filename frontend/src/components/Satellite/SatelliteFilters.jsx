@@ -54,6 +54,15 @@ const SatelliteFilters = ({ filters, onFiltersChange, statistics }) => {
     });
   };
 
+  // 按数量降序；数量相同按中文友好顺序
+  const sortByCountDesc = (obj) =>
+  Object.entries(obj || {}).sort(([aLabel, aCount], [bLabel, bCount]) => {
+    if ((bCount || 0) !== (aCount || 0)) return (bCount || 0) - (aCount || 0);
+    // 数量相同：按中英文名自然顺序
+    return String(aLabel).localeCompare(String(bLabel), 'zh-Hans-CN');
+  });
+
+
   // 🔧 修复：安全获取 filters 值的辅助函数
   const getFilterArray = (filterName) => {
     return Array.isArray(filters[filterName]) ? filters[filterName] : [];
@@ -209,16 +218,15 @@ const SatelliteFilters = ({ filters, onFiltersChange, statistics }) => {
           onToggle={() => toggleSection('status')}
         >
           <div className="space-y-1">
-            {Object.entries(safeStatistics.status).map(([status, count]) => (
-              <CheckboxOption
-                key={status}
-                label={status}
-                count={count}
-                // 🔧 修复：使用安全的数组获取
-                checked={getFilterArray('status').includes(status)}
-                onChange={() => handleCheckboxChange('status', status)}
-              />
-            ))}
+            {sortByCountDesc(safeStatistics.status).map(([status, count]) => (
+                <CheckboxOption
+                  key={status}
+                  label={status}
+                  count={count}
+                  checked={getFilterArray('status').includes(status)}
+                  onChange={() => handleCheckboxChange('status', status)}
+                />
+             ))}
           </div>
         </FilterSection>
 
@@ -229,16 +237,15 @@ const SatelliteFilters = ({ filters, onFiltersChange, statistics }) => {
           onToggle={() => toggleSection('owner')}
         >
           <div className="space-y-1">
-            {Object.entries(safeStatistics.owner).map(([owner, count]) => (
-              <CheckboxOption
-                key={owner}
-                label={owner}
-                count={count}
-                // 🔧 修复：使用安全的数组获取
-                checked={getFilterArray('owner').includes(owner)}
-                onChange={() => handleCheckboxChange('owner', owner)}
-              />
-            ))}
+            {sortByCountDesc(safeStatistics.owner).map(([owner, count]) => (
+                <CheckboxOption
+                  key={owner}
+                  label={owner}
+                  count={count}
+                  checked={getFilterArray('owner').includes(owner)}
+                  onChange={() => handleCheckboxChange('owner', owner)}
+                />
+             ))}
           </div>
         </FilterSection>
 
@@ -249,16 +256,15 @@ const SatelliteFilters = ({ filters, onFiltersChange, statistics }) => {
           onToggle={() => toggleSection('orbitType')}
         >
           <div className="space-y-1">
-            {Object.entries(safeStatistics.orbitType).map(([orbitType, count]) => (
-              <CheckboxOption
-                key={orbitType}
-                label={orbitType}
-                count={count}
-                // 🔧 修复：使用安全的数组获取
-                checked={getFilterArray('orbitType').includes(orbitType)}
-                onChange={() => handleCheckboxChange('orbitType', orbitType)}
-              />
-            ))}
+            {sortByCountDesc(safeStatistics.orbitType).map(([orbitType, count]) => (
+                <CheckboxOption
+                  key={orbitType}
+                  label={orbitType}
+                  count={count}
+                  checked={getFilterArray('orbitType').includes(orbitType)}
+                  onChange={() => handleCheckboxChange('orbitType', orbitType)}
+                />
+             ))}
           </div>
         </FilterSection>
 
@@ -327,16 +333,15 @@ const SatelliteFilters = ({ filters, onFiltersChange, statistics }) => {
           onToggle={() => toggleSection('launchSite')}
         >
           <div className="space-y-1">
-            {Object.entries(safeStatistics.launchSite).map(([site, count]) => (
-              <CheckboxOption
-                key={site}
-                label={site}
-                count={count}
-                // 🔧 修复：使用安全的数组获取
-                checked={getFilterArray('launchSite').includes(site)}
-                onChange={() => handleCheckboxChange('launchSite', site)}
-              />
-            ))}
+            {sortByCountDesc(safeStatistics.launchSite).map(([site, count]) => (
+                <CheckboxOption
+                  key={site}
+                  label={site}
+                  count={count}
+                  checked={getFilterArray('launchSite').includes(site)}
+                  onChange={() => handleCheckboxChange('launchSite', site)}
+                />
+             ))}
           </div>
         </FilterSection>
 
