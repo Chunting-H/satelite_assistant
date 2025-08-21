@@ -21,7 +21,7 @@ sys.path.append(str(project_root))
 # FastAPI相关导入
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, BackgroundTasks, WebSocket, WebSocketDisconnect, \
     Query, Path as PathParam, Body
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from backend.src.tools.knowledge_tools import retrieve_knowledge_for_workflow
@@ -1731,7 +1731,7 @@ async def get_processing_progress(processing_id: str):
     )
 
 @app.get("/api/download/{file_type}/{processing_id}")
-async def download_processed_data(file_type: str, processing_id: str):
+async def download_processed_data(file_type: str, processing_id: str, preview: bool = Query(False)):
     """下载处理结果文件"""
     # 处理最小模式下的固定processing_id
     if processing_id == "test123":
@@ -1779,6 +1779,38 @@ async def download_processed_data(file_type: str, processing_id: str):
             raise HTTPException(status_code=404, detail=f"文件不存在: {file_path}")
         abs_path = file_path
     
+    # 预览模式：将任意格式（如tif）转为PNG内联返回，便于前端<img>展示
+    if preview:
+        try:
+            png_bytes: bytes = b""
+            try:
+                import cv2
+                import numpy as np
+                img = cv2.imread(abs_path, cv2.IMREAD_UNCHANGED)
+                if img is None:
+                    raise ValueError("无法读取图像用于预览")
+                # 若是灰度或带Alpha，尽量转换为BGR
+                if len(img.shape) == 2:
+                    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                ok, buf = cv2.imencode('.png', img)
+                if not ok:
+                    raise ValueError("PNG编码失败")
+                png_bytes = buf.tobytes()
+            except Exception:
+                # 回退到PIL
+                from PIL import Image
+                from io import BytesIO
+                pil_img = Image.open(abs_path)
+                if pil_img.mode not in ('RGB', 'RGBA'):
+                    pil_img = pil_img.convert('RGB')
+                bio = BytesIO()
+                pil_img.save(bio, format='PNG')
+                png_bytes = bio.getvalue()
+            return Response(content=png_bytes, media_type='image/png')
+        except Exception as e:
+            logger.error(f"生成预览失败: {e}")
+            raise HTTPException(status_code=500, detail=f"生成预览失败: {str(e)}")
+
     filename = Path(abs_path).name
     return FileResponse(abs_path, filename=filename)
 
@@ -1931,5 +1963,6 @@ if __name__ == "__main__":
         app,  # 直接使用app实例
         host="127.0.0.1",  # 使用本地回环地址
         port=2025,
+        
         log_level="info"
     )

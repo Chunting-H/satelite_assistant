@@ -19,6 +19,7 @@ import SatelliteManagement from './components/Satellite/SatelliteManagement';
 // 🆕 新增：导入数据处理组件
 import DataProcessingDialog from './components/Chat/DataProcessingDialog';
 import ProcessingProgressBar from './components/UI/ProcessingProgressBar';
+import ProcessingResultViewer from './components/Chat/ProcessingResultViewer';
 
 // 🆕 新增：可拖拽分隔条组件
 const ResizableHandle = ({ onDrag, isVisible }) => {
@@ -136,6 +137,10 @@ function App() {
   const [showProgressBar, setShowProgressBar] = useState(false);
   const [hasShownDataProcessingDialog, setHasShownDataProcessingDialog] = useState(false);
   const [preferPlanCallback, setPreferPlanCallback] = useState(true); // 优先由子组件回调触发
+  // 🆕 结果对比视图状态
+  const [showResultViewer, setShowResultViewer] = useState(false);
+  const [resultOriginalUrl, setResultOriginalUrl] = useState(null);
+  const [resultProcessedUrl, setResultProcessedUrl] = useState(null);
 
   // 🆕 新增：处理拖拽调整宽度
   const handleResize = useCallback((clientX) => {
@@ -512,7 +517,7 @@ function App() {
         // 显示数据处理对话框
         if (data.satellites && data.satellites.length > 0) {
           // 确保卫星数据格式正确
-          const formattedSatellites = data.satellites.map(sat =>
+          const formattedSatellites = data.satellites.map(sat => 
             typeof sat === 'string' ? { name: sat, type: 'optical' } : sat
           );
           setCurrentSatellites(formattedSatellites);
@@ -583,9 +588,9 @@ function App() {
           console.log('🛰️ 开始提取卫星信息...');
 
           const isNewPlan = responseContent.includes('卫星组成') ||
-            responseContent.includes('虚拟星座方案') ||
-            responseContent.includes('## 2.') ||
-            responseContent.includes('| 卫星名称 |');
+                           responseContent.includes('虚拟星座方案') ||
+                           responseContent.includes('## 2.') ||
+                           responseContent.includes('| 卫星名称 |');
 
           if (isNewPlan) {
             console.log('🆕 检测到新方案，先清空旧卫星');
@@ -625,10 +630,10 @@ function App() {
                 console.log('✅ 最终更新流式消息');
 
                 const isPlanMessage = streamingContentRef.current.includes('卫星组成') ||
-                  streamingContentRef.current.includes('虚拟星座方案') ||
-                  streamingContentRef.current.includes('## 2.') ||
-                  streamingContentRef.current.includes('| 卫星名称 |');
-
+                       streamingContentRef.current.includes('虚拟星座方案') ||
+                       streamingContentRef.current.includes('## 2.') ||
+                       streamingContentRef.current.includes('| 卫星名称 |');
+                
                 const updatedMessage = {
                   ...msg,
                   isStreaming: false,
@@ -916,39 +921,39 @@ function App() {
     console.log('📤 发送消息:', text.slice(0, 50));
 
     const isNewPlanRequest = text.includes('监测') || text.includes('方案') ||
-      text.includes('规划') || text.includes('设计') ||
-      text.includes('观测') || text.includes('卫星');
+                            text.includes('规划') || text.includes('设计') ||
+                            text.includes('观测') || text.includes('卫星');
 
     const hasExistingPlan = messages.some(msg =>
-      msg.role === 'assistant' &&
-      (msg.content.includes('虚拟星座方案') || msg.content.includes('卫星组成'))
+        msg.role === 'assistant' &&
+        (msg.content.includes('虚拟星座方案') || msg.content.includes('卫星组成'))
     );
 
     const messageData = {
-      message: text,
-      extracted_satellites: extractedSatellites,
-      location: location
+        message: text,
+        extracted_satellites: extractedSatellites,
+        location: location
     };
 
     if (isNewPlanRequest && hasExistingPlan) {
-      console.log('🔄 检测到新方案请求，将重置参数澄清流程');
-      messageData.reset_clarification = true;
+        console.log('🔄 检测到新方案请求，将重置参数澄清流程');
+        messageData.reset_clarification = true;
     }
 
     const isLocationChangeRequest = text.includes('改成') || text.includes('换成') ||
-      text.includes('改为') || text.includes('变成') ||
-      text.includes('如果') || text.includes('换到') ||
-      text.includes('改到') || text.includes('移到') ||
-      /地点.*?改|地点.*?换|地点.*?变|位置.*?改|位置.*?换|位置.*?变/.test(text);
+                                   text.includes('改为') || text.includes('变成') ||
+                                   text.includes('如果') || text.includes('换到') ||
+                                   text.includes('改到') || text.includes('移到') ||
+                                   /地点.*?改|地点.*?换|地点.*?变|位置.*?改|位置.*?换|位置.*?变/.test(text);
 
     const isEconomicOptimization = text.includes('经济') || text.includes('便宜') ||
-      text.includes('成本') || text.includes('省钱') ||
-      text.includes('低成本') || text.includes('更便宜');
+                                  text.includes('成本') || text.includes('省钱') ||
+                                  text.includes('低成本') || text.includes('更便宜');
 
     const isOptimizationRequest = text.includes('优化') || text.includes('改进') ||
-      text.includes('调整') || text.includes('修改') ||
-      text.includes('提升') || text.includes('改善') ||
-      isEconomicOptimization || isLocationChangeRequest;
+                                 text.includes('调整') || text.includes('修改') ||
+                                 text.includes('提升') || text.includes('改善') ||
+                                 isEconomicOptimization || isLocationChangeRequest;
 
     if (isNewPlanRequest || isOptimizationRequest) {
       console.log('🧹 检测到新方案请求或优化请求，准备清除现有数据');
@@ -984,8 +989,8 @@ function App() {
           await new Promise(resolve => setTimeout(resolve, 200));
 
           if (wsRef.current &&
-            wsRef.current.readyState === WebSocket.OPEN &&
-            wsRef.current.conversationId === convId) {
+              wsRef.current.readyState === WebSocket.OPEN &&
+              wsRef.current.conversationId === convId) {
             console.log('✅ WebSocket已连接，可以发送消息');
             return true;
           }
@@ -1286,7 +1291,7 @@ function App() {
   const handleDataProcessingComplete = (data) => {
     console.log('✅ 数据处理完成:', data);
     setShowProgressBar(false);
-
+    
     // 显示成功提示
     const successMessage = {
       id: Date.now() + Math.random(),
@@ -1295,9 +1300,20 @@ function App() {
       timestamp: Date.now(),
       isStreaming: false
     };
-
+    
     setMessages(prev => [...prev, successMessage]);
 
+    // 🆕 构建对比显示所需的 URL（若浏览器强制下载，可后续改为 fetch blob 再 createObjectURL）
+    if (data && data.download_urls) {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:2025';
+      // 使用预览模式，后端将图像转换为PNG返回，确保<img>可显示
+      const originalHref = data.download_urls.original ? `${API_BASE}${data.download_urls.original}?preview=true` : null;
+      const processedHref = data.download_urls.processed ? `${API_BASE}${data.download_urls.processed}?preview=true` : null;
+      setResultOriginalUrl(originalHref);
+      setResultProcessedUrl(processedHref);
+      setShowResultViewer(true);
+    }
+    
     // 更新工作流状态
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({
@@ -1339,9 +1355,9 @@ function App() {
     // 仅在助手的最终方案消息触发（更严格条件）
     const isConstellationPlan = message.showVisualization === true || (
       (message.content.includes('虚拟星座方案') ||
-        message.content.includes('卫星组成') ||
-        message.content.includes('## 2.') ||
-        message.content.includes('| 卫星名称 |'))
+       message.content.includes('卫星组成') ||
+       message.content.includes('## 2.') ||
+       message.content.includes('| 卫星名称 |'))
     );
 
     if (isConstellationPlan && message.role === 'assistant' && !hasShownDataProcessingDialog) {
@@ -1504,8 +1520,8 @@ function App() {
                           <ul className="space-y-3">
                             {exampleQuestions.map((question, index) => (
                               <li key={index}
-                                className="flex items-center text-gray-700 hover:text-gray-800 cursor-pointer"
-                                onClick={() => handleExampleClick(question)}>
+                                  className="flex items-center text-gray-700 hover:text-gray-800 cursor-pointer"
+                                  onClick={() => handleExampleClick(question)}>
                                 <span className="text-gray-500 mr-2">•</span>
                                 <span className="hover:underline">{question}</span>
                               </li>
@@ -1517,8 +1533,8 @@ function App() {
                           <ul className="space-y-3">
                             {exampleRequirements.map((requirement, index) => (
                               <li key={index}
-                                className="flex items-center text-gray-700 hover:text-gray-800 cursor-pointer"
-                                onClick={() => handleExampleClick(requirement)}>
+                                  className="flex items-center text-gray-700 hover:text-gray-800 cursor-pointer"
+                                  onClick={() => handleExampleClick(requirement)}>
                                 <span className="text-gray-500 mr-2">•</span>
                                 <span className="hover:underline">{requirement}</span>
                               </li>
@@ -1569,16 +1585,16 @@ function App() {
                           <div key={msg.id} className="flex justify-center">
                             <div className="w-full space-y-4">
                               {msg.role === 'assistant' &&
-                                !msg.isStreaming &&
-                                msg.thinkingSteps &&
-                                msg.thinkingSteps.length > 0 && (
-                                  <FixedThinkingProcess
-                                    steps={msg.thinkingSteps}
-                                    visible={true}
-                                    isProcessing={false}
-                                    title="思考过程"
-                                  />
-                                )}
+                               !msg.isStreaming &&
+                               msg.thinkingSteps &&
+                               msg.thinkingSteps.length > 0 && (
+                                <FixedThinkingProcess
+                                  steps={msg.thinkingSteps}
+                                  visible={true}
+                                  isProcessing={false}
+                                  title="思考过程"
+                                />
+                              )}
 
                               <EnhancedStreamingMessage
                                 message={msg.content}
@@ -1630,20 +1646,35 @@ function App() {
                           </div>
                         )}
 
-                        {isProcessing &&
-                          currentThinkingSteps.length > 0 &&
-                          !streamingMessageIdRef.current && (
-                            <div className="flex justify-center">
-                              <div className="w-full">
-                                <FixedThinkingProcess
-                                  steps={currentThinkingSteps}
-                                  visible={true}
-                                  isProcessing={true}
-                                  title="正在思考中..."
-                                />
-                              </div>
+                        {/* 🆕 新增：处理结果对比视图 */}
+                        {showResultViewer && (
+                          <div className="flex justify-center mb-4">
+                            <div className="w-full max-w-4xl">
+                              <ProcessingResultViewer
+                                isVisible={showResultViewer}
+                                originalUrl={resultOriginalUrl}
+                                processedUrl={resultProcessedUrl}
+                                processingId={processingId}
+                                onClose={() => setShowResultViewer(false)}
+                              />
                             </div>
-                          )}
+                          </div>
+                        )}
+
+                        {isProcessing &&
+                         currentThinkingSteps.length > 0 &&
+                         !streamingMessageIdRef.current && (
+                          <div className="flex justify-center">
+                            <div className="w-full">
+                              <FixedThinkingProcess
+                                steps={currentThinkingSteps}
+                                visible={true}
+                                isProcessing={true}
+                                title="正在思考中..."
+                              />
+                            </div>
+                          </div>
+                        )}
 
                         <div ref={messagesEndRef} />
                       </div>
