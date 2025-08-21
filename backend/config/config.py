@@ -169,6 +169,9 @@ class Settings(BaseSettings):
     root_dir: str = ROOT_DIR
     data_dir: str = os.path.join(ROOT_DIR, "data")
     knowledge_dir: str = os.path.join(ROOT_DIR, "data", "knowledge")
+    
+    # 卫星数据文件配置
+    satellite_data_file: str = "eo_satellite.zh.json"  # 新的数据文件名
 
     # 在 pydantic-settings 中，使用 model_config 替代 Config 类
     model_config = {

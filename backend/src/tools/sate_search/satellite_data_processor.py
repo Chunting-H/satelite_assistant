@@ -24,7 +24,7 @@ class SatelliteDataProcessor:
     """卫星数据处理器 - 负责数据清洗、格式化和存储"""
 
     def __init__(self):
-        self.data_file_path = os.path.join(settings.data_dir, "eo_satellite.json")
+        self.data_file_path = os.path.join(settings.data_dir, settings.satellite_data_file)
         self.deepseek_api_key = os.environ.get("DEEPSEEK_API_KEY", "")
         self.deepseek_api_url = "https://api.deepseek.com/v1/chat/completions"
         
@@ -148,8 +148,8 @@ class SatelliteDataProcessor:
             return await self._default_format_data(batch_data)
 
     def _build_formatting_prompt(self, batch_data: List[Dict[str, Any]]) -> str:
-        """构建格式化提示词（增强版 - 包含详情页面数据）"""
-        # JSON模板
+        """构建格式化提示词（增强版 - 包含详情页面数据和中文化字段）"""
+        # JSON模板 - 包含中文化字段
         template = {
             "satelliteName": "示例卫星名称",
             "alternateNames": ["别名1", "别名2"],
@@ -184,7 +184,19 @@ class SatelliteDataProcessor:
             "isEO": "Earth observation",
             "relatedSatIds": [],
             "eoPortal": "",
-            "hasInstrumentId": []
+            "hasInstrumentId": [],
+            # 中文化字段
+            "eoPortal_zh": "",
+            "operStatusCode_zh": "运行状态中文名",
+            "isEO_zh": "地球观测",
+            "satelliteAgencies_zh": "卫星机构中文名",
+            "instrumentNames_zh": ["仪器中文名1", "仪器中文名2"],
+            "applications_zh": ["地球观测", "应用类型中文"],
+            "launchSite_zh": "发射场中文名",
+            "owner_zh": "所有者中文名",
+            "objectType_zh": "载荷类型中文",
+            "satelliteName_zh": "卫星中文名称",
+            "orbitType_zh": "轨道类型中文名"
         }
         
         # 为每个卫星构建详细的数据描述
@@ -263,6 +275,17 @@ class SatelliteDataProcessor:
 7. 将"卫星描述"信息整合到相关字段中
 8. 所有数值字段确保是数字类型，字符串字段确保是字符串类型
 9. 如果某个字段无法从原始数据中获取，使用合适的默认值
+10. **中文化字段处理**：
+    - satelliteName_zh：卫星名称的中文翻译或原名
+    - owner_zh：所有者/国家的中文名称（如"United States"→"美国"）
+    - satelliteAgencies_zh：卫星机构的中文名称
+    - applications_zh：应用类型的中文翻译
+    - launchSite_zh：发射场的中文名称
+    - operStatusCode_zh：运行状态的中文描述
+    - isEO_zh：地球观测分类的中文（"地球观测"或"其他"）
+    - objectType_zh：载荷类型的中文（如"PAY"→"有效载荷"）
+    - orbitType_zh：轨道类型的中文描述
+    - instrumentNames_zh：仪器名称的中文翻译数组
 
 ⚠️ 输出要求：
 1. 必须返回纯JSON格式
@@ -328,6 +351,18 @@ class SatelliteDataProcessor:
                     "relatedSatIds": [],
                     "eoPortal": "",
                     "hasInstrumentId": [],
+                    # 中文化字段
+                    "eoPortal_zh": "",
+                    "operStatusCode_zh": "未知",
+                    "isEO_zh": "未知",
+                    "satelliteAgencies_zh": self._translate_to_chinese(detailed_specs.get('operator', raw_sat.get('agency', 'Unknown')), 'agency'),
+                    "instrumentNames_zh": [],
+                    "applications_zh": [],
+                    "launchSite_zh": self._translate_to_chinese(raw_sat.get('site', ''), 'launch_site'),
+                    "owner_zh": self._translate_to_chinese(detailed_specs.get('nation', 'Unknown'), 'country'),
+                    "objectType_zh": "有效载荷",
+                    "satelliteName_zh": satellite_name,  # 保持原名，可以后续优化翻译
+                    "orbitType_zh": "未知",
                     # 添加爬取相关的元数据
                     "_crawl_metadata": {
                         "crawl_time": raw_sat.get('crawl_time'),
@@ -366,7 +401,9 @@ class SatelliteDataProcessor:
                 
                 # 从详细规格中提取轨道信息
                 if detailed_specs.get('orbit'):
-                    formatted_sat['orbitType'] = self._determine_orbit_type(detailed_specs['orbit'])
+                    orbit_type = self._determine_orbit_type(detailed_specs['orbit'])
+                    formatted_sat['orbitType'] = orbit_type
+                    formatted_sat['orbitType_zh'] = self._translate_orbit_type_to_chinese(orbit_type)
                 
                 # 处理应用类型
                 applications = []
@@ -378,12 +415,16 @@ class SatelliteDataProcessor:
                     applications = raw_sat['applications']
                 
                 formatted_sat['applications'] = applications
+                formatted_sat['applications_zh'] = self._translate_applications_to_chinese(applications)
                 
                 # 确定是否为地球观测卫星
                 if applications:
                     earth_obs_keywords = ['earth observation', 'monitoring', 'remote sensing', 'imaging']
                     is_eo = any(keyword in app.lower() for app in applications for keyword in earth_obs_keywords)
                     formatted_sat['isEO'] = "Earth observation" if is_eo else "Other"
+                    formatted_sat['isEO_zh'] = "地球观测" if is_eo else "其他"
+                else:
+                    formatted_sat['isEO_zh'] = "未知"
                 
                 formatted_satellites.append(formatted_sat)
                 
@@ -439,6 +480,114 @@ class SatelliteDataProcessor:
             applications.append(app_type)
         
         return applications
+
+    def _translate_to_chinese(self, text: str, field_type: str) -> str:
+        """将英文文本翻译为中文"""
+        if not text or text.lower() in ['unknown', '']:
+            return "未知"
+        
+        # 国家/地区翻译
+        if field_type == 'country':
+            country_translations = {
+                'united states': '美国',
+                'usa': '美国',
+                'china': '中国',
+                'russia': '俄罗斯',
+                'japan': '日本',
+                'germany': '德国',
+                'france': '法国',
+                'italy': '意大利',
+                'india': '印度',
+                'brazil': '巴西',
+                'canada': '加拿大',
+                'australia': '澳大利亚',
+                'south korea': '韩国',
+                'united kingdom': '英国',
+                'uk': '英国',
+                'european space agency': '欧洲航天局',
+                'esa': '欧洲航天局'
+            }
+            return country_translations.get(text.lower(), text)
+        
+        # 机构翻译
+        elif field_type == 'agency':
+            agency_translations = {
+                'nasa': 'NASA',
+                'esa': '欧洲航天局',
+                'jaxa': '日本宇宙航空研究开发机构',
+                'roscosmos': '俄罗斯航天局',
+                'cnsa': '中国国家航天局',
+                'isro': '印度空间研究组织',
+                'csa': '加拿大航天局',
+                'asc': '澳大利亚航天公司',
+                'kari': '韩国航空宇宙研究院'
+            }
+            return agency_translations.get(text.lower(), text)
+        
+        # 发射场翻译
+        elif field_type == 'launch_site':
+            site_translations = {
+                'kennedy space center': '肯尼迪航天中心',
+                'vandenberg air force base': '范登堡空军基地',
+                'cape canaveral': '卡纳维拉尔角',
+                'baikonur cosmodrome': '拜科努尔航天发射场',
+                'kourou': '库鲁航天中心',
+                'tanegashima space center': '种子岛宇宙中心',
+                'xichang satellite launch center': '西昌卫星发射中心',
+                'jiuquan satellite launch center': '酒泉卫星发射中心',
+                'taiyuan satellite launch center': '太原卫星发射中心',
+                'wenchang spacecraft launch site': '文昌航天发射场'
+            }
+            for eng, chn in site_translations.items():
+                if eng.lower() in text.lower():
+                    return chn
+            return text
+        
+        return text
+
+    def _translate_orbit_type_to_chinese(self, orbit_type: str) -> str:
+        """轨道类型翻译"""
+        orbit_translations = {
+            'geo': '地球同步轨道',
+            'geostationary': '地球静止轨道',
+            'leo': '低地球轨道',
+            'meo': '中地球轨道',
+            'sso': '太阳同步轨道',
+            'sun-synchronous': '太阳同步轨道',
+            'polar': '极轨',
+            'elliptical': '椭圆轨道',
+            'molniya': '闪电轨道',
+            'leo_i': '高近地轨道',
+            'unknown': '未知'
+        }
+        return orbit_translations.get(orbit_type.lower(), orbit_type)
+
+    def _translate_applications_to_chinese(self, applications: List[str]) -> List[str]:
+        """应用类型翻译"""
+        app_translations = {
+            'earth observation': '地球观测',
+            'communication': '通信',
+            'navigation': '导航',
+            'meteorology': '气象',
+            'scientific': '科学研究',
+            'military': '军用',
+            'technology demonstration': '技术验证',
+            'remote sensing': '遥感',
+            'imaging': '成像',
+            'monitoring': '监测',
+            'surveillance': '监视',
+            'reconnaissance': '侦察',
+            'space science': '空间科学',
+            'astronomy': '天文',
+            'other': '其他'
+        }
+        
+        translated_apps = []
+        for app in applications:
+            translated = app_translations.get(app.lower(), app)
+            translated_apps.append(translated)
+        
+        return translated_apps
 
     def _clean_json_response(self, content: str) -> str:
         """清理DeepSeek响应中的markdown格式和其他干扰内容"""

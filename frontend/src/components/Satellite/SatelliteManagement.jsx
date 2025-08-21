@@ -4,6 +4,7 @@ import SatelliteFilters from './SatelliteFilters';
 import SatelliteList from './SatelliteList';
 import SatelliteDetail from './SatelliteDetail';
 import SatelliteChat from './SatelliteChat';
+import DataUpdateRecords from './DataUpdateRecords';
 // ✅ 引入 JSON 数据源（Vite 原生支持 JSON 导入）
 import eo from '../../config/eo_satellite.zh.json';
 
@@ -178,6 +179,7 @@ const SatelliteManagement = ({ onBack }) => {
   const [selectedSatellite, setSelectedSatellite] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDataUpdate, setShowDataUpdate] = useState(false);
 
   // 过滤器默认结构（集中管理）
   const defaultFilters = {
@@ -436,6 +438,18 @@ const SatelliteManagement = ({ onBack }) => {
             <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded">
               {satelliteCount} 颗卫星
             </span>
+            {/* 数据更新按钮 */}
+            <button
+              onClick={() => setShowDataUpdate(true)}
+              className="ml-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1.5 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-xl"
+              title="查看数据更新记录与手动爬取"
+            >
+              {/* 爬虫/机器人图标 */}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm font-medium">数据更新</span>
+            </button>
           </div>
 
           {/* 搜索框 */}
@@ -499,6 +513,11 @@ const SatelliteManagement = ({ onBack }) => {
               </div>
         )}
       </div>
+
+      {/* 数据更新记录弹窗 */}
+      {showDataUpdate && (
+        <DataUpdateRecords onClose={() => setShowDataUpdate(false)} />
+      )}
     </div>
   );
 };

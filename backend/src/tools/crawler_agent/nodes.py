@@ -176,7 +176,7 @@ class CrawlerNodes:
             
             state['current_node'] = 'file_write'
             
-            # 数据已在duplicate_check_node中写入到eo_satellite.json
+            # 数据已在duplicate_check_node中写入到eo_satellite.zh.json
             # 这里主要是确认操作完成
             
             if state['new_satellites_count'] > 0:

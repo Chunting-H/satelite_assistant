@@ -55,5 +55,24 @@
     ],
     "executionTime": 75.99480700492859,
     "totalProcessed": 5
+  },
+  {
+    "crawlTime": "2025-08-21T19:53:22.044007",
+    "targetSites": [
+      "Gunter's Space Page"
+    ],
+    "newDataCount": 5,
+    "updatedDataCount": 0,
+    "failedCount": 0,
+    "failReasons": [],
+    "dataList": [
+      "Bion-M 2",
+      "AIRSAT 05",
+      "Duogongneng Shiyan 2-01, 02, 03",
+      "Tianyan 26",
+      "ThumbSat 1, 2"
+    ],
+    "executionTime": 108.70641899108887,
+    "totalProcessed": 5
   }
 ]
